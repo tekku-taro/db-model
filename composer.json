@@ -1,0 +1,22 @@
+{
+    "name": "taro/db-model",
+    "description": "php-ormapperの改良バージョン。",
+    "type": "library",
+    "require": {
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"        
+    },
+    "autoload": {
+        "psr-4": {
+            "Taro\\DBModel\\":"./src"
+        }
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "tekku.taro",
+            "email": "tekku.taro@gmail.com"
+        }
+    ]
+}
