@@ -1,5 +1,5 @@
 <?php
-namespace Taro\DBModel\Exception;
+namespace Taro\DBModel\Exceptions;
 
 use Exception;
 use Throwable;

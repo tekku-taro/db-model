@@ -3,7 +3,7 @@ namespace Taro\DBModel\Utilities;
 
 define('DS', DIRECTORY_SEPARATOR);
 
-use Taro\DBModel\Exception\FileNotFoundException;
+use Taro\DBModel\Exceptions\FileNotFoundException;
 
 class FileHandler
 {
@@ -31,7 +31,7 @@ class FileHandler
 
         $configInfo = require(self::CONFIG_PATH);
         assert(is_array($configInfo));
-        var_dump($configInfo);
+        // var_dump($configInfo);
         return $configInfo;
     }
 

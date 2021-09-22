@@ -1,5 +1,5 @@
 <?php
-namespace Taro\DBModel\Exception;
+namespace Taro\DBModel\Exceptions;
 
 use Exception;
 use Throwable;
@@ -7,8 +7,8 @@ use Throwable;
 class WrongSqlException extends Exception
 {
     // 例外を再定義し、メッセージをオプションではなくする
-    public function __construct($rawSql, $code = 0, Throwable $previous = null) {
-        $message = '作成されたSQL:' . $rawSql . 'に問題があります。';
+    public function __construct($sqlOrReason, $code = 0, Throwable $previous = null) {
+        $message = '作成されたSQLに問題があります。:' . $sqlOrReason;
 
         // 全てを正しく確実に代入する
         parent::__construct($message, $code, $previous);
