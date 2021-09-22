@@ -44,6 +44,7 @@ class DbConnection
         if(isset(self::$dbhList[$dbName])) {
             return self::$dbhList[$dbName];
         }
+        return null;
     }
 
     /**

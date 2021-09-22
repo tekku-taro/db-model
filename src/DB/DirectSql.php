@@ -2,6 +2,7 @@
 namespace Taro\DBModel\DB;
 
 use PDO;
+use Taro\DBModel\Exceptions\WrongSqlException;
 
 class DirectSql
 {
@@ -9,29 +10,37 @@ class DirectSql
     
     public $sql;
 
-    public $params;
+    public $params = [];
 
     private $incrementedParamNo = 0;
 
     private $dbManipulator;
 
-    private $sqlBlocks;
+    private $sqlBlocks = [
+        'selectors'=>[]
+    ];
 
     private $compiled;
 
-    private $useBindParam = false;
+    private $useBindParam;
 
-    public function __construct(DbManipulator $dbManipulator,bool $useBindParam = false)
+    public function __construct(DbManipulator $dbManipulator)
     {
         $this->dbManipulator = $dbManipulator;
-        $this->$useBindParam = $useBindParam;
     }
 
 
-    public function query(string $dbName = null,bool $useBindParam = null):self
+    public static function query(bool $useBindParam = true):self
+    {
+        return self::queryToDbFor(null, $useBindParam);
+    }
+
+    public static function queryToDbFor(?string $dbName, bool $useBindParam = true):self
     {
         $dbManipulator = DB::database($dbName)->getManipulator();
-        return new DirectSql($dbManipulator, $useBindParam);
+        $query = new self($dbManipulator, $useBindParam);
+        $query->useBindParam = $useBindParam;
+        return $query;
     }
 
     public function prepareSql(string $sql):self
@@ -63,14 +72,17 @@ class DirectSql
         return $this;        
     }
     
-    private function replacePlaceholder($value): mixed
+    private function replacePlaceholder($value)
     {
         if($this->useBindParam) {
+            if($value[0] === ':') {
+                return $value;
+            }
             $placeholder = $this->generatePlaceholder();
             $this->bindParam($placeholder, $value);
             return $placeholder;
         }
-        return $value;
+        return '"' . $value . '"';
 
     }
 
@@ -165,7 +177,7 @@ class DirectSql
 
     private function compile():string
     {
-        $sql = 'SELECT ' . implode(',', $this->sqlBlocks['selectors']) .' FROM ' . $this->table . ' '
+        $sql = 'SELECT ' . $this->compileSelectors() .' FROM ' . $this->table . ' '
         . $this->compileJoin()
         . $this->compileWhere()
         . $this->compileGroupBy()
@@ -180,8 +192,23 @@ class DirectSql
         return $this->compiled;
     }
 
+    private function compileSelectors(): string
+    {
+        if(empty($this->sqlBlocks['selectors'])) {
+            $selectClause = '*';
+        } else {
+            $selectClause = implode(',', $this->sqlBlocks['selectors']);
+        }
+
+        return $selectClause;
+    }
+
     private function compileJoin(): string
     {
+        if(!isset($this->sqlBlocks['join'])) {
+            return '';
+        }
+
         $joinClause = '';
         foreach ($this->sqlBlocks['join'] as $joint) {
             $joinClause .= $joint['type'] . ' ' . $joint['table'] . ' ' . $joint['on'] . ' ';
@@ -192,11 +219,19 @@ class DirectSql
 
     private function compileWhere(): string
     {
+        if(!isset($this->sqlBlocks['where'])) {
+            return '';
+        }
+
         return 'WHERE ' . implode(' AND ', $this->sqlBlocks['where']) . ' ';
     }
 
     private function compileOrderBy(): string
     {
+        if(!isset($this->sqlBlocks['orderBy'])) {
+            return '';
+        }
+
         $orderBy = [];
         foreach ($this->sqlBlocks['orderBy'] as $columnData) {
             [$column, $order] = $columnData;
@@ -208,11 +243,17 @@ class DirectSql
 
     private function compileGroupBy(): string
     {
+        if(!isset($this->sqlBlocks['groupBy'])) {
+            return '';
+        }
+
         return 'GROUP BY ' . implode(',', $this->sqlBlocks['groupBy']) . ' ';
     }
 
     public function insert(array $record):bool
     {
+        $this->validateSqlBlocks(['record', 'table'], $record);
+
         $sql = 'INSERT INTO ' . $this->table . ' ';        
         $columns = array_keys($record);
 
@@ -226,7 +267,9 @@ class DirectSql
     }
 
     public function bulkInsert(array $recordList):bool
-    {
+    {        
+        $this->validateSqlBlocks(['record', 'table'], $recordList);
+
         $sql = 'INSERT INTO ' . $this->table . ' ';
         $valuesList = [];
         foreach ($recordList as $idx => $record) {
@@ -246,6 +289,8 @@ class DirectSql
 
     public function update(array $record):bool
     {
+        $this->validateSqlBlocks(['record', 'table', 'where'], $record);
+
         $sql = 'UPDATE ' . $this->table;
         $sql .= $this->compileJoin(). ' SET ';        
         
@@ -253,7 +298,7 @@ class DirectSql
         foreach ($record as $column => $value) {
             $setClause[] = $column . ' = ' . $this->replacePlaceholder($value);
         }
-        $sql .= implode(', ', $setClause)        
+        $sql .= implode(', ', $setClause) . ' '        
             . $this->compileWhere() . ';';
 
         return $this->dbManipulator->executeCUD($sql, $this->params);        
@@ -261,11 +306,28 @@ class DirectSql
 
     public function delete():bool
     {
+        $this->validateSqlBlocks(['table', 'where']);
+
         $sql = 'DELETE FROM ' . $this->table . ' ';
         $sql .= $this->compileJoin();
         $sql .= $this->compileWhere() . ';';
 
         return $this->dbManipulator->executeCUD($sql, $this->params);         
+    }
+
+    private function validateSqlBlocks(array $checkItems, $data = null): bool
+    {
+        if(in_array('table', $checkItems) && $this->table === null) {            
+            throw new WrongSqlException(' テーブル名が空欄です。 ');
+        }
+        if(in_array('record', $checkItems) && $data === null) {            
+            throw new WrongSqlException(' 保存するデータがありません。 ');
+        }
+        if(in_array('where', $checkItems) && !isset($this->sqlBlocks['where'])) {            
+            throw new WrongSqlException(' WHERE で対象レコードを制限していません。 ');
+        }
+
+        return true;
     }
 
 }

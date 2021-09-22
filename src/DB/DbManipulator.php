@@ -3,7 +3,7 @@ namespace Taro\DBModel\DB;
 
 use PDO;
 use PDOStatement;
-use Taro\DBModel\Exception\WrongSqlException;
+use Taro\DBModel\Exceptions\WrongSqlException;
 
 class DbManipulator
 {
@@ -15,13 +15,13 @@ class DbManipulator
         $this->dbh = $dbh;
     }
 
-    public function execute($rawSql, $params, $options = []): array
+    public function execute($rawSql, $params = [], $options = []): array
     {
         $statement = $this->preExecute($rawSql, $params, $options);
 
-        $statement->execute();
+        $result = $statement->execute();
 
-        if ($this->dbh->errorCode()) {
+        if ($result === false) {
             throw new \Exception($this->dbh->errorInfo()[2]);
         }        
 
@@ -42,19 +42,32 @@ class DbManipulator
         }
 
         foreach ($params as $placeholder => $value) {
-            $statement->bindParam($placeholder, $value);            
+            $statement->bindValue($placeholder, $value, $this->getParamType($value));            
         }
+    }
+
+    private function getParamType($value): string
+    {
+        if(is_int($value)) {
+            return PDO::PARAM_INT;
+        }
+        if(is_bool($value)) {
+            return PDO::PARAM_BOOL;
+        }
+
+        return PDO::PARAM_STR;
+
     }
 
 
 
-    public function executeSelect($rawSql, $params, $options = []): PDOStatement
+    public function executeSelect($rawSql, $params = [], $options = []): PDOStatement
     {
         $statement = $this->preExecute($rawSql, $params, $options);
 
-        $statement->execute();
+        $result = $statement->execute();
 
-        if ($this->dbh->errorCode()) {
+        if ($result === false) {
             throw new \Exception($this->dbh->errorInfo()[2]);
         }        
 
@@ -74,7 +87,7 @@ class DbManipulator
         return $statement;
     }
 
-    public function executeCUD($rawSql, $params, $options = []): bool
+    public function executeCUD($rawSql, $params = [], $options = []): bool
     {
         $statement = $this->preExecute($rawSql, $params, $options);
 

@@ -9,7 +9,7 @@ return [
             'host'=>'localhost',
             'user'=>'root',
             'password'=>'',
-            'dbname'=>'tasks',
+            'dbname'=>'tasksdb',
         ],
     ]
 ];

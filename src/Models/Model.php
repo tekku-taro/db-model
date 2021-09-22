@@ -1,6 +1,7 @@
 <?php
 namespace Taro\DBModel\Models;
 
+use ReflectionClass;
 use Taro\DBModel\Query\QueryBuilder;
 use Taro\DBModel\Query\Relations\BelongsTo;
 use Taro\DBModel\Query\Relations\BelongsToThrough;
@@ -78,12 +79,29 @@ class Model
 
     public function __set($name, $value)    
     {
-
+     
     }
 
     public function __get($name)
     {
+        if(isset($this->{$name})) {
+            return $this->{$name};
+        }
+        return null;
+    }
 
+    private function getProperties()
+    {
+        $reflectionClass = new \ReflectionClass($this);
+
+        $properties = [];
+
+        foreach ($reflectionClass->getProperties(\ReflectionProperty::IS_PROTECTED) as $property) {
+            $propertyName = $property->getName();
+            $properties[$propertyName] = $this->{$propertyName};
+        }  
+        
+        return $properties;
     }
 
     

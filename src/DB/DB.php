@@ -2,7 +2,7 @@
 namespace Taro\DBModel\DB;
 
 use PDO;
-use Taro\DBModel\Exception\DatabaseNotConnectedException;
+use Taro\DBModel\Exceptions\DatabaseNotConnectedException;
 use Taro\DBModel\Utilities\FileHandler;
 
 class DB
@@ -46,22 +46,22 @@ class DB
         return $this->dbh->rollback();
     }
 
-    public static function start(string $dbName): self
+    public static function start(string $dbName = null): self
     {
-        $config = self::loadConfig($dbName);
+        ['config'=>$config, 'dbName'=>$dbName] = self::loadConfig($dbName);
         $dbh = DbConnection::open($dbName, $config);
         return new self($dbName, $config, $dbh);
     }
 
     public function restart(): self
     {
-        $this->end();
+        $this->stop();
 
         $dbh = DbConnection::open($this->dbName, $this->config);
         return $this;
     }
 
-    public function end()
+    public function stop()
     {
         DbConnection::close($this->dbName);
     }
@@ -76,10 +76,11 @@ class DB
         return $this->dbh;
     }
 
-    public static function database($dbName): self
+    public static function database(string $dbName = null): self
     {
+        ['config'=>$config, 'dbName'=>$dbName] = self::loadConfig($dbName);
         $dbh = self::getDbhOrThrow($dbName);
-        return  new self($dbName, self::loadConfig($dbName), $dbh);
+        return  new self($dbName, $config, $dbh);
     }
 
     private static function loadConfig(string $dbName = null): array
@@ -89,7 +90,7 @@ class DB
             $dbName = $config['default'];
         }
 
-        return $config['dbList'][$dbName];
+        return ['config' =>$config['dbList'][$dbName], 'dbName' => $dbName];
     }
 
     public static function __callStatic($method, $args)
