@@ -23,7 +23,6 @@ class DirectSqlTest extends TestCase
     public function setUp():void
     {
         $this->setupConnection();
-        // $this->adapter->delete('posts', []);
         $this->fillTable('posts');
     }
 
@@ -142,28 +141,6 @@ class DirectSqlTest extends TestCase
         $results = $query->select('title','finished')
             ->getAsModels(Post::class);
 
-        $expected = [
-            array (
-              'title' => 'test1',
-              'finished' => 0,
-            ),
-            array (
-              'title' => 'test2',
-              'finished' => 1,
-            ),
-            array (
-              'title' => 'test3',
-              'finished' => 1,
-            ),
-            array (
-              'title' => 'test4',
-              'finished' => 1,
-            ),
-            array (
-              'title' => 'test5',
-              'finished' => 0,
-            ),
-        ];
         $this->assertTrue(is_array($results));
         $this->assertInstanceOf(Post::class, $results[0]);
         $this->assertEquals('test1', $results[0]->title);
@@ -193,6 +170,17 @@ class DirectSqlTest extends TestCase
 
         $this->assertCount(3, $posts);
     }
+
+    // public function testBindParam()
+    // {
+    //     $posts = DirectSql::query()->table('posts')
+    //         ->where('title', ':title1')->bindParam(':title1', 'test1')
+    //         ->getAsModels(Post::class);
+
+    //     $expected = 'test1';
+
+    //     $this->assertEquals($expected, $posts[0]->title);
+    // }
 
     public function testOrderBy()
     {
