@@ -24,22 +24,24 @@ class DirectSql
 
     private $useBindParam;
 
-    public function __construct(DbManipulator $dbManipulator)
+    public function __construct(DbManipulator $dbManipulator, bool $useBindParam = true)
     {
         $this->dbManipulator = $dbManipulator;
+        $this->useBindParam = $useBindParam;
     }
 
 
     public static function query(bool $useBindParam = true):self
     {
-        return self::queryToDbFor(null, $useBindParam);
+        $dbManipulator = DB::getGlobal()->getManipulator();
+        $query = new self($dbManipulator, $useBindParam);
+        return $query;        
     }
 
-    public static function queryToDbFor(?string $dbName, bool $useBindParam = true):self
+    public static function queryToDb(?string $connName, bool $useBindParam = true):self
     {
-        $dbManipulator = DB::database($dbName)->getManipulator();
+        $dbManipulator = DB::database($connName)->getManipulator();
         $query = new self($dbManipulator, $useBindParam);
-        $query->useBindParam = $useBindParam;
         return $query;
     }
 
@@ -68,7 +70,7 @@ class DirectSql
 
     public function select(...$selectors):self
     {
-        array_merge($this->sqlBlocks['selectors'], $selectors);
+        $this->sqlBlocks['selectors'] = array_merge($this->sqlBlocks['selectors'], $selectors);
         return $this;        
     }
     
@@ -99,14 +101,20 @@ class DirectSql
         $column = $args[0];
         if(count($args) == 2) {
             $op = '=';
-            $value = $args[1];
-            
+            $value = $this->replacePlaceholder($args[1]);
         } else {
             $op = $args[1];
-            $value = $args[2];
+            if(is_array($args[2])) {
+                $array = array_map(function($val){
+                    return $this->replacePlaceholder($val);
+                }, $args[2]);
+                $value = ' ( ' . implode(', ', $array) . ' ) ';
+            } else {
+                $value = $this->replacePlaceholder($args[2]);
+            }
         }
 
-        $clause = $column . ' ' . $op . ' ' . $this->replacePlaceholder($value);
+        $clause = $column . ' ' . $op . ' ' . $value;
         $this->sqlBlocks['where'][] = $clause;
         return $this;        
     }
@@ -181,11 +189,8 @@ class DirectSql
         . $this->compileJoin()
         . $this->compileWhere()
         . $this->compileGroupBy()
-        . $this->compileOrderBy();
-
-        if($this->sqlBlocks['limit'] !== null) {
-            $sql .= 'LIMIT ' . $this->sqlBlocks['limit'];
-        }
+        . $this->compileOrderBy()
+        . $this->compileLimit();
 
         $this->compiled = $sql . ';';
 
@@ -248,6 +253,15 @@ class DirectSql
         }
 
         return 'GROUP BY ' . implode(',', $this->sqlBlocks['groupBy']) . ' ';
+    }
+
+    private function compileLimit(): string
+    {
+        if(!isset($this->sqlBlocks['limit'])) {
+            return '';
+        }
+
+        return 'LIMIT ' . $this->sqlBlocks['limit'];
     }
 
     public function insert(array $record):bool
