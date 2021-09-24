@@ -3,7 +3,7 @@ namespace Taro\DBModel\Config;
 
 return [
     'default'=>'mysql',
-    'dbList' => [
+    'connections' => [
         'mysql'=>[
             'driver'=>'mysql',
             'host'=>'localhost',

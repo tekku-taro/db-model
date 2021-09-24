@@ -10,13 +10,13 @@ class DbConnection
     static private $dbhList = [];
 
     /**
-     * @param string $dbName
+     * @param string $connName
      * @param array $config
      * @return PDO
      */
-    public static function open(string $dbName, array $config):PDO
+    public static function open(string $connName, array $config):PDO
     {
-        $dbh = self::getConnection($dbName);
+        $dbh = self::getConnection($connName);
 
         if($dbh !== null) {
             return $dbh;
@@ -26,7 +26,10 @@ class DbConnection
             // $dbh = new PDO('mysql:host=localhost;dbname=test', $user, $pass);
             $dsn = $config['driver'] . ':host=' . $config['host'] . ';dbname=' . $config['dbname'];
             $dbh = new PDO($dsn, $config['user'], $config['password']);
-            self::$dbhList[$dbName] = $dbh;
+            $dbh->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+            $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $dbh->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+            self::$dbhList[$connName] = $dbh;
             return $dbh;
 
         } catch (PDOException $e) {
@@ -36,26 +39,38 @@ class DbConnection
     }
 
     /**
-     * @param string $dbName
+     * @param string $connName
      * @return PDO|null
      */
-    public static function getConnection(string $dbName):?PDO
+    public static function getConnection(string $connName):?PDO
     {
-        if(isset(self::$dbhList[$dbName])) {
-            return self::$dbhList[$dbName];
+        if(isset(self::$dbhList[$connName])) {
+            return self::$dbhList[$connName];
         }
         return null;
     }
 
     /**
-     * @param string $databaseName
+     * @param string $connName
      * @return void
      */
-    public static function close(string $dbName):void
+    public static function close(string $connName):void
     {   
-        if(isset(self::$dbhList[$dbName])) {
-            self::$dbhList[$dbName] = null;
-            unset(self::$dbhList[$dbName]);
+        if(isset(self::$dbhList[$connName])) {
+            self::$dbhList[$connName] = null;
+            unset(self::$dbhList[$connName]);
         }
+    }
+
+    /**
+     * @param string $connName
+     * @return void
+     */
+    public static function closeAll():void
+    {   
+        foreach (self::$dbhList as $dbh) {
+            $dbh = null;
+        }
+        self::$dbhList = [];
     }
 }

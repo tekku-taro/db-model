@@ -10,23 +10,26 @@ class DB
     /** @var PDO $dbh */
     private $dbh;
 
-    public $dbName;
+    /** @var DB $globalDb */
+    private static $globalDb;
+
+    public $connName;
 
     public $config;
 
 
-    public function __construct($dbName, $config, $dbh)
+    public function __construct($connName, $config, $dbh)
     {
-        $this->dbName = $dbName;
+        $this->connName = $connName;
         $this->config = $config;
         $this->dbh = $dbh;
     }
 
-    private static function getDbhOrThrow(string $dbName):PDO
+    private static function getDbhOrThrow(string $connName):PDO
     {
-        $dbh = DbConnection::getConnection($dbName);
+        $dbh = DbConnection::getConnection($connName);
         if($dbh === null) {
-            throw new DatabaseNotConnectedException($dbName);
+            throw new DatabaseNotConnectedException($connName);
         }
         return $dbh; 
     }
@@ -46,24 +49,45 @@ class DB
         return $this->dbh->rollback();
     }
 
-    public static function start(string $dbName = null): self
+    public static function start(string $connName = null, bool $asGlobal = false): self
     {
-        ['config'=>$config, 'dbName'=>$dbName] = self::loadConfig($dbName);
-        $dbh = DbConnection::open($dbName, $config);
-        return new self($dbName, $config, $dbh);
+        ['config'=>$config, 'connName'=>$connName] = self::loadConfig($connName);
+        $dbh = DbConnection::open($connName, $config);
+        $db = new self($connName, $config, $dbh);
+        if($asGlobal) {
+            self::$globalDb = $db;
+        }
+        return $db;
     }
 
     public function restart(): self
     {
         $this->stop();
 
-        $dbh = DbConnection::open($this->dbName, $this->config);
+        $dbh = DbConnection::open($this->connName, $this->config);
         return $this;
+    }
+
+    public static function restartGlobal(): self
+    {
+        self::$globalDb->stop();
+        $db = DB::start(self::$globalDb->connName, true);
+        return $db;
     }
 
     public function stop()
     {
-        DbConnection::close($this->dbName);
+        DbConnection::close($this->connName);
+    }
+
+    public static function stopGlobal()
+    {
+        self::$globalDb->stop();
+    }
+
+    public static function getGlobal()
+    {
+        return self::$globalDb;
     }
 
     public function getManipulator()
@@ -76,21 +100,21 @@ class DB
         return $this->dbh;
     }
 
-    public static function database(string $dbName = null): self
+    public static function database(string $connName = null): self
     {
-        ['config'=>$config, 'dbName'=>$dbName] = self::loadConfig($dbName);
-        $dbh = self::getDbhOrThrow($dbName);
-        return  new self($dbName, $config, $dbh);
+        ['config'=>$config, 'connName'=>$connName] = self::loadConfig($connName);
+        $dbh = self::getDbhOrThrow($connName);
+        return  new self($connName, $config, $dbh);
     }
 
-    private static function loadConfig(string $dbName = null): array
+    private static function loadConfig(string $connName = null): array
     {
         $config = FileHandler::loadConfig();
-        if($dbName === null) {
-            $dbName = $config['default'];
+        if($connName === null) {
+            $connName = $config['default'];
         }
 
-        return ['config' =>$config['dbList'][$dbName], 'dbName' => $dbName];
+        return ['config' =>$config['connections'][$connName], 'connName' => $connName];
     }
 
     public static function __callStatic($method, $args)
