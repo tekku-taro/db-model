@@ -35,7 +35,7 @@ class DbManipulator
      * @param array<string,mixed> $params [placeholder => $value]
      * @return void
      */
-    private function bindParams(PDOStatement $statement, array $params)
+    private function bindParams(PDOStatement $statement, array $params):void
     {
         if(empty($params)) {
             return;
@@ -61,7 +61,7 @@ class DbManipulator
 
 
 
-    public function executeSelect($rawSql, $params = [], $options = []): PDOStatement
+    public function executeAndStatement($rawSql, $params = [], $options = []): PDOStatement
     {
         $statement = $this->preExecute($rawSql, $params, $options);
 
@@ -87,7 +87,7 @@ class DbManipulator
         return $statement;
     }
 
-    public function executeCUD($rawSql, $params = [], $options = []): bool
+    public function executeAndBoolResult($rawSql, $params = [], $options = []): bool
     {
         $statement = $this->preExecute($rawSql, $params, $options);
 
@@ -101,15 +101,8 @@ class DbManipulator
         return $result;
     }
 
-    // public function update($sql, $params)
-    // {
-        
-    // }
-
-    // public function delete($sql, $params)
-    // {
-        
-    // }
-
-
+    public function getLastInsertedId():string
+    {
+        return $this->dbh->lastInsertId();
+    }
 }

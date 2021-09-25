@@ -65,6 +65,7 @@ class DB
         $this->stop();
 
         $dbh = DbConnection::open($this->connName, $this->config);
+        $this->dbh = $dbh;
         return $this;
     }
 
@@ -75,22 +76,22 @@ class DB
         return $db;
     }
 
-    public function stop()
+    public function stop():void
     {
         DbConnection::close($this->connName);
     }
 
-    public static function stopGlobal()
+    public static function stopGlobal():void
     {
         self::$globalDb->stop();
     }
 
-    public static function getGlobal()
+    public static function getGlobal():DB
     {
         return self::$globalDb;
     }
 
-    public function getManipulator()
+    public function getManipulator():DbManipulator
     {
         return new DbManipulator($this->dbh);
     }
