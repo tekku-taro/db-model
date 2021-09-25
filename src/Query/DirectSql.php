@@ -1,0 +1,53 @@
+<?php
+namespace Taro\DBModel\Query;
+
+use Taro\DBModel\DB\DB;
+use Taro\DBModel\DB\DbManipulator;
+
+class DirectSql extends BaseBuilder
+{
+    public function __construct(DbManipulator $dbManipulator, bool $useBindParam = true)
+    {
+        parent::__construct($dbManipulator, null, $useBindParam);
+    }
+
+    public static function query(bool $useBindParam = true):self
+    {
+        $dbManipulator = DB::getGlobal()->getManipulator();
+        $builder = new self($dbManipulator, $useBindParam);
+        return $builder;        
+    }
+
+    public static function queryToDb(?string $connName, bool $useBindParam = true):self
+    {
+        $dbManipulator = DB::database($connName)->getManipulator();
+        $query = new self($dbManipulator, $useBindParam);
+        return $query;
+    }
+
+    public function prepareSql(string $sql):self
+    {
+        $this->query->setCompiled($sql);
+        return $this;
+    }
+
+    public function table($table):self
+    {
+        $this->query->table = $table;
+        return $this;        
+    }
+
+
+    public function getAsArray():array
+    {
+        return $this->executeAndFetchAll();
+    }
+
+    public function getAsModels(string $className): array
+    {
+        $result = $this->executeAndFetchAll();
+        $modelList = $this->hydrateList($result, $className); 
+        return $modelList;              
+    }
+
+}

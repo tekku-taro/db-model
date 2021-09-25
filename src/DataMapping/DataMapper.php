@@ -1,39 +1,56 @@
 <?php
 namespace Taro\DBModel\DataMapping;
 
+use Taro\DBModel\DB\DbManipulator;
+use Taro\DBModel\Traits\ParamsTrait;
+use Taro\DBModel\Traits\SqlBaseTrait;
+use Taro\DBModel\Utilities\Str;
+
 class DataMapper
 {
-    public $query;
+    use ParamsTrait;
+    use SqlBaseTrait;
+    
+    private $params;
 
     public $modelName;
 
+    public $table;
+
     private $dbManipulator;
 
-    public function executeQuery()
+    private $useBindParam = true;
+
+    public function __construct(DbManipulator $dbManipulator, $modelName)
     {
-        
+        $this->dbManipulator = $dbManipulator;
+        $this->modelName = $modelName;
+        $this->table = Str::snakeCase(Str::getShortClassName($this->modelName)) . 's';
+    }    
+
+    public function executeInsert($record)
+    {
+        $sql = $this->prepareInsert($record);
+        if($this->dbManipulator->executeAndBoolResult($sql, $this->params)) {
+            return $this->dbManipulator->getLastInsertedId();
+        }
+        return false;
     }
 
-    public function executeInsert()
+    public function executeUpdate($id, $record):bool
     {
+        $sql = $this->prepareUpdate($record);
+        $sql .= ' WHERE id = ' . $this->replacePlaceholder($id) . ' ;';
 
+        return $this->dbManipulator->executeAndBoolResult($sql, $this->params);    
     }
 
-    public function executeUpdate()
+    public function executeDelete($id):bool
     {
+        $sql = $this->prepareDelete();
+        $sql .= 'WHERE id = ' . $this->replacePlaceholder($id) . ' ;';
 
+        return $this->dbManipulator->executeAndBoolResult($sql, $this->params);  
     }
-
-    public function executeDelete()
-    {
-
-    }
-
-    public function getTable():string
-    {
-
-    }
-
-
 
 }

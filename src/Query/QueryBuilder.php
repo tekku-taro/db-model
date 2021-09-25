@@ -1,102 +1,97 @@
 <?php
 namespace Taro\DBModel\Query;
 
+use Taro\DBModel\DB\DB;
+use Taro\DBModel\DB\DbManipulator;
 use Taro\DBModel\Models\Model;
 use Taro\DBModel\Utilities\Paginator;
 
-class QueryBuilder
+class QueryBuilder extends BaseBuilder
 {
-    public $query;
+    public function __construct(DbManipulator $dbManipulator, $modelName, bool $useBindParam = true)
+    {
+        $this->dbManipulator = $dbManipulator;
+        $this->modelName = $modelName;
+        $this->useBindParam = $useBindParam;
+        $this->query = new Query($dbManipulator, $modelName);
+    }    
 
-    public $modelName;
+    public static function query($modelName, bool $useBindParam = true):QueryBuilder
+    {
+        $dbManipulator = DB::getGlobal()->getManipulator();
+        $builder = new self($dbManipulator, $modelName, $useBindParam);
+        return $builder;        
+    }
 
- public function where():self
- {
 
- }
+    public function getFirst():Model    
+    {
+        $result = $this->executeAndFetch();
 
- public function whereIn():self    
- {
+        return $this->hydrate($result, $this->modelName);
+    }
 
- }
+    public function getAll():array
+    {
+        $results = $this->executeAndFetchAll();
+        return $this->hydrateList($results, $this->modelName);
+    }
 
- public function whereBetween():self    
- {
+    public function getArrayAll():array    
+    {
+        return $this->executeAndFetchAll();
+    }
 
- }
+    protected function executeAndFetchAll()
+    {
+        $statement = $this->query->execute();
+        $results = $statement->fetchAll();
+        $statement = null;
+        if($results === false) {
+            return null;
+        }
+        return $results;
+    }
 
- public function addWhere():self   
- {
+    protected function executeAndFetch()
+    {
+        $statement = $this->query->execute();
+        $results = $statement->fetch();
+        $statement = null;
+        if($results === false) {
+            return null;
+        }
+        return $results;
+    }
 
- }
+    public function getPaginator(int $number):Paginator    
+    {
 
- public function orderBy():self    
- {
+    }
 
- }
+    public function findById($id):Model    
+    {
+        $this->query->where = [];
+        
+        $this->where('id', $id);
+        $result = $this->executeAndFetch();
 
- public function limit():self    
- {
+        return $this->hydrate($result);
+    }
 
- }
+    public function with():self    
+    {
 
- public function groupBy():self    
- {
+    }
 
- }
+    protected function checkInput() 
+    {
 
- public function select():self    
- {
+    }
 
- }
 
- public function getFirst():Model    
- {
+    public function isRelatedModel():bool
+    {
 
- }
-
- public function getAll():array
- {
-
- }
-
- public function getArrayAll():array    
- {
-
- }
-
- public function getPaginator(int $number):Paginator    
- {
-
- }
-
- public function findById():Model    
- {
-
- }
-
- public function with():self    
- {
-
- }
-
- private function checkInput() 
- {
-
- }
-
- private function hydrateList():array    
- {
-
- }
-
- private function hydrate():Model    
- {
-
- }
-
- public function isRelatedModel():bool
- {
-
- }
+    }
 }
