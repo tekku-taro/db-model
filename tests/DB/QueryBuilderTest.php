@@ -4,8 +4,9 @@ use PHPUnit\Framework\TestCase;
 use Taro\DBModel\DB\DB;
 use Taro\DBModel\Query\DirectSql;
 use Taro\DBModel\Models\Post;
+use Taro\DBModel\Query\QueryBuilder;
 
-class DirectSqlTest extends TestCase
+class QueryBuilderTest extends TestCase
 {
     private $connName = 'mysql';
 
@@ -71,7 +72,7 @@ class DirectSqlTest extends TestCase
     public function testInsert()
     {
         $this->clearTable('posts');
-        DirectSql::query()->table('posts')->insert($this->sampleData[0]);
+        QueryBuilder::query(Post::class)->insert($this->sampleData[0]);
 
         $this->assertTrue($this->seeInDatabase('posts', $this->sampleData[0]));
     }
@@ -79,7 +80,7 @@ class DirectSqlTest extends TestCase
     public function testBulkInsert()
     {
         $this->clearTable('posts');
-        DirectSql::query()->table('posts')->bulkInsert($this->sampleData);
+        QueryBuilder::query(Post::class)->bulkInsert($this->sampleData);
         
         $failures = array_filter($this->sampleData, function($record) {
             return !$this->seeInDatabase('posts', $record);
@@ -88,58 +89,24 @@ class DirectSqlTest extends TestCase
         $this->assertEquals(0, count($failures));
     }
 
-
-    public function testPrepareAndRunSql()
+    public function testGetFirst()
     {
-        $sql = 'SELECT * FROM posts WHERE title = :title';
-        $query = DirectSql::query()->prepareSql($sql);
-        $query->bindParam(':title', 'test1');
-        $results = $query->getAsArray();
+        $query = QueryBuilder::query(Post::class);
+        $result = $query->select('title','finished')
+            ->orderBy('title', 'ASC')
+            ->getFirst();
 
-        $expected = $this->sampleData[0];
-        // print_r($results);
-        $this->assertEquals($expected, array_intersect_key($results[0],$expected));
+        $expected = 'test1';
+        $this->assertInstanceOf(Post::class, $result);     
+        $this->assertEquals($expected, $result->title);
     }
 
-    public function testGetAsArray()
+    public function testGetAll()
     {
-        $query = DirectSql::query()->table('posts');
+        $query = QueryBuilder::query(Post::class);
 
         $results = $query->select('title','finished')
-            ->getAsArray();
-
-        $expected = [
-            array (
-              'title' => 'test1',
-              'finished' => 0,
-            ),
-            array (
-              'title' => 'test2',
-              'finished' => 1,
-            ),
-            array (
-              'title' => 'test3',
-              'finished' => 1,
-            ),
-            array (
-              'title' => 'test4',
-              'finished' => 1,
-            ),
-            array (
-              'title' => 'test5',
-              'finished' => 0,
-            ),
-        ];
-        $this->assertTrue(is_array($results));
-        $this->assertEquals($expected, $results);
-    }
-
-    public function testGetAsModels()
-    {
-        $query = DirectSql::query()->table('posts');
-
-        $results = $query->select('title','finished')
-            ->getAsModels(Post::class);
+            ->getAll();
 
         $this->assertTrue(is_array($results));
         $this->assertInstanceOf(Post::class, $results[0]);
@@ -148,34 +115,34 @@ class DirectSqlTest extends TestCase
 
     public function testWhere()
     {
-        $posts = DirectSql::query()->table('posts')
+        $posts = QueryBuilder::query(Post::class)
             ->where('title', 'test1')
-            ->getAsModels(Post::class);
+            ->getAll();
 
         $expected = 'test1';
 
         $this->assertEquals($expected, $posts[0]->title);
 
-        $posts = DirectSql::query()->table('posts')
+        $posts = QueryBuilder::query(Post::class)
             ->where('title', 'IN', ['test1', 'test2'])
-            ->getAsModels(Post::class);
+            ->getAll();
 
         $expected = ['test1', 'test2'];
         $this->assertCount(2, $posts);
         $this->assertEquals($expected, [$posts[0]->title,$posts[1]->title]);
 
-        $posts = DirectSql::query()->table('posts')
+        $posts = QueryBuilder::query(Post::class)
             ->where('views', '>', '2')
-            ->getAsModels(Post::class);
+            ->getAll();
 
         $this->assertCount(3, $posts);
     }
 
     public function testBindParam()
     {
-        $posts = DirectSql::query()->table('posts')
+        $posts = QueryBuilder::query(Post::class)
             ->where('title', ':title1')->bindParam(':title1', 'test1')
-            ->getAsModels(Post::class);
+            ->getAll();
 
         $expected = 'test1';
 
@@ -184,20 +151,22 @@ class DirectSqlTest extends TestCase
 
     public function testOrderBy()
     {
-        $posts = DirectSql::query()->table('posts')
+        $posts = QueryBuilder::query(Post::class)
             ->orderBy('views', 'DESC')
-            ->getAsArray();        
+            ->getAll();        
 
         $expected = ['test1','test2','test5','test4','test3'];
-
-        $this->assertEquals($expected, array_column($posts, 'title'));
+        $actual = array_map(function($post){
+            return $post->title;
+        }, $posts);
+        $this->assertEquals($expected, $actual);
     }
 
     public function testLimit()
     {
-        $posts = DirectSql::query()->table('posts')
+        $posts = QueryBuilder::query(Post::class)
             ->limit(2)
-            ->getAsArray();                
+            ->getAll();                
         $expected = 2;
 
         $this->assertCount($expected, $posts);
@@ -211,7 +180,7 @@ class DirectSqlTest extends TestCase
             'title' => 'test1-1',
             'body' => 'test post 1-1'
         ];
-        DirectSql::query()->table('posts')
+        QueryBuilder::query(Post::class)
             ->where('title', ':title')->bindParam(':title', 'test1')
             ->update($updateData);
 
@@ -222,7 +191,7 @@ class DirectSqlTest extends TestCase
     {
         $title = 'test1';
 
-        DirectSql::query()->table('posts')
+        QueryBuilder::query(Post::class)
             ->where('title', $title)
             ->delete();
 
