@@ -3,7 +3,9 @@ namespace Taro\DBModel\Models;
 
 class Task extends Model
 {
-    public $content;
-
-    public $status;
+    protected $title;
+    
+    protected $content;
+    
+    protected $status;
 }

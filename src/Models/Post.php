@@ -8,6 +8,20 @@ class Post extends Model
     protected $title;
 
     protected $body;
-
+    
+    protected $user_id;
+    
+    protected $date;
+    
+    protected $views;
+    
+    protected $finished;
+    
+    protected $hidden;
+    
+    protected $category;
+    
+    protected $tags;
+    
     protected $create_date;
 }
