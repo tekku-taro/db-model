@@ -6,6 +6,10 @@ use Taro\DBModel\Exceptions\WrongSqlException;
 class WhBlockRow implements WhClauseInterface
 {
     public $conjunct;
+
+    private const AND_OPERATOR = 'AND';
+
+    private const OR_OPERATOR = 'OR';
     
     /** @var array<WhClauseInterface> $rowBlocks */
     public $rowBlocks = [];
@@ -17,13 +21,13 @@ class WhBlockRow implements WhClauseInterface
 
     public function addAnd(WhClauseInterface $block)
     {
-        $block->setConjunct('AND');
+        $block->setConjunct(self::AND_OPERATOR);
         $this->rowBlocks[] = $block;
     }
 
     public function addOr(WhClauseInterface $block)
     {
-        $block->setConjunct('OR');
+        $block->setConjunct(self::OR_OPERATOR);
         $this->rowBlocks[] = $block;
     }
 
@@ -47,9 +51,6 @@ class WhBlockRow implements WhClauseInterface
 
     private function connectBlocks($sqlA, $conjunct, $sqlB)
     {
-        // if($conjunct === 'AND') {
-        //     return '( ' . $sqlA . ' ) ' . $conjunct . ' ( ' . $sqlB . ' )';        
-        // }
         return $sqlA . ' ' . $conjunct . ' ' . $sqlB;        
     }
 
