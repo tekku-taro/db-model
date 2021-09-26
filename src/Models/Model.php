@@ -21,7 +21,7 @@ class Model
 
     protected $dirties = [];
 
-    public $fields = [];
+    protected $fields = [];
 
     protected static $database;
 
