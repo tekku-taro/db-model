@@ -5,7 +5,7 @@ namespace Taro\DBModel\Traits;
 trait ParamsTrait
 {
 
-    protected $incrementedParamNo = 0;
+    protected static $incrementedParamNo = 0;
 
 
     public function bindParam($paramName, $value):self
@@ -41,7 +41,7 @@ trait ParamsTrait
 
     protected function generatePlaceholder(): string
     {
-        $this->incrementedParamNo += 1;
-        return ':param'. $this->incrementedParamNo;
+        self::$incrementedParamNo += 1;
+        return ':param'. self::$incrementedParamNo;
     }
 }
