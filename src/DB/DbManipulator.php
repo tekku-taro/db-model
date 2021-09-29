@@ -54,6 +54,9 @@ class DbManipulator
         if(is_bool($value)) {
             return PDO::PARAM_BOOL;
         }
+        if(is_null($value)) {
+            return PDO::PARAM_NULL;
+        }
 
         return PDO::PARAM_STR;
 

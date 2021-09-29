@@ -45,7 +45,7 @@ class QueryBuilder extends BaseBuilder
         $this->where('id', $id);
         $result = $this->executeAndFetch();
 
-        return $this->hydrate($result);
+        return $this->hydrate($result, $this->modelName);
     }
 
     public function with():self    

@@ -2,6 +2,7 @@
 namespace Taro\DBModel\Query\Clauses;
 
 use Taro\DBModel\Traits\ParamsTrait;
+use Taro\DBModel\Utilities\Str;
 
 class WhBlock implements WhClauseInterface
 {
@@ -28,7 +29,7 @@ class WhBlock implements WhClauseInterface
     public function set($leftOp, $operator, $rightOp)
     {
         $this->leftOp =$leftOp;
-        $this->operator =$operator;
+        $this->operator =trim($operator);
         $this->rightOp =$rightOp;
     }
 
@@ -59,11 +60,12 @@ class WhBlock implements WhClauseInterface
             } else {
                 $rightOp = $this->replacePlaceholder($this->rightOp);
             }
-            $sql = $this->leftOp . ' ' . $this->operator . ' ' . $rightOp;
+            $sql = $this->leftOp . ' ' . Str::modifyOperatorIfNull($this->operator, $rightOp) . ' ' . $rightOp;
         }
         
         return $sql;
     }
+
 
     public function bindParam($paramName, $value):void
     {

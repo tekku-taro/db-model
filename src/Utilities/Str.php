@@ -15,4 +15,20 @@ class Str
         return ltrim($result, '_');
     }
 
+
+    public static function modifyOperatorIfNull($operator, $value)
+    {
+        $modified = $operator;
+        if($value === 'NULL') {
+            if($operator === '=') {
+                $modified = 'IS';
+            }else if($operator === '!=' || $operator === '<>') {
+                $modified = 'IS NOT';
+            }
+
+            return $modified;
+        }
+
+        return $operator;
+    }    
 }

@@ -16,6 +16,9 @@ class BaseBuilder
 
     public $modelName;
 
+    private $dbManipulator;
+
+
     public function __construct(DbManipulator $dbManipulator, $modelName, bool $useBindParam = true)
     {
         $this->dbManipulator = $dbManipulator;
@@ -50,6 +53,16 @@ class BaseBuilder
     protected function checkInput() 
     {
 
+    }
+
+    public function toSql(): string
+    {
+        return $this->query->getCompiled();
+    }
+
+    public function getParams(): array
+    {
+        return $this->query->params;
     }
 
     public function insert(array $record):bool

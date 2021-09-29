@@ -49,7 +49,7 @@ class Query
 
     public function execute():PDOStatement
     {
-        $compiled = $this->getCompiled();
+        $compiled = $this->compile();
         return $this->dbManipulator->executeAndStatement($compiled, $this->params);
     }
 
@@ -68,7 +68,7 @@ class Query
         $this->compiled = $sql;
     }
 
-    private function getCompiled(): string
+    public function getCompiled(): string
     {
         if($this->compiled !== null) {
             return $this->compiled;

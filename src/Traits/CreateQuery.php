@@ -2,6 +2,7 @@
 namespace Taro\DBModel\Traits;
 
 use Taro\DBModel\Exceptions\WrongSqlException;
+use Taro\DBModel\Utilities\Str;
 
 trait CreateQuery
 {
@@ -30,7 +31,7 @@ trait CreateQuery
                 $value = $this->replacePlaceholder($args[2]);
             }
         }
-
+        $op  = Str::modifyOperatorIfNull($op, $value);
         $clause = $column . ' ' . $op . ' ' . $value;
         $this->query->where[] = $clause;
         return $this;        
