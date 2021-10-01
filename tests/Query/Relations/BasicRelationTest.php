@@ -117,6 +117,53 @@ class BasicRelationTest extends TestCase
         $this->assertEquals($expected, $actual);
     }
 
+    public function testHasManyInsert()
+    {
+        $data = [
+            'title'=>'test6',
+            'views'=>'6',            
+        ];
+        /** @var User $user */
+        $user = User::query()->orderBy('id', 'ASC')->getFirst();
+        $user->relatedPosts()->insert($data);
+        $data['user_id'] = $user->id;
+
+        $this->assertTrue($this->seeInDatabase('posts', $data));
+    }
+
+    public function testHasManyUpdate()
+    {
+        $data =[
+            'title' => 'test1-1',
+            'body' => 'test post 1-1'
+        ];
+        /** @var User $user */
+        $user = User::query()->findById(2);     
+        
+        $user->relatedPosts()
+            ->where('title', ':title')->bindParam(':title', 'test2')
+            ->update($data);
+
+        $data['user_id'] = $user->id;
+
+        $this->assertTrue($this->seeInDatabase('posts', $data));
+    }
+
+    public function testHasManyDelete()
+    {
+        $title = 'test2';
+
+        /** @var User $user */
+        $user = User::query()->findById(2);     
+        
+        $user->relatedPosts()
+            ->where('title', ':title')->bindParam(':title', $title)
+            ->delete();
+
+        $this->assertFalse($this->seeInDatabase('posts', ['title'=>$title]));
+    }
+
+
     public function testHasOne()
     {
         $params = new RelationParams([
