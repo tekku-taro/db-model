@@ -67,6 +67,8 @@ class BaseBuilder
 
     public function insert(array $record):bool
     { 
+        $this->query->params = [];
+        $record = $this->addRelationalColumns($record);
         $record = $this->placeholdersForRecord($record);
 
         return $this->query->executeInsert($record);
@@ -74,7 +76,9 @@ class BaseBuilder
 
     public function bulkInsert(array $recordList):bool
     {
+        $this->query->params = [];
         $modifiedList = array_map(function($record) {
+            $record = $this->addRelationalColumns($record);            
             return $this->placeholdersForRecord($record);
         }, $recordList);        
 
@@ -94,6 +98,10 @@ class BaseBuilder
     }
 
 
+    protected function addRelationalColumns(array $record)
+    {
+        return $record;
+    }
 
     /**
      * @param array[] $records

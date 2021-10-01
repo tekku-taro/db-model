@@ -6,12 +6,15 @@ use Taro\DBModel\DB\DB;
 use Taro\DBModel\DB\DbManipulator;
 use Taro\DBModel\Exceptions\InvalidModelException;
 use Taro\DBModel\Query\QueryBuilder;
+use Taro\DBModel\Query\QueryBuilderFactory;
 use Taro\DBModel\Query\Relations\BelongsTo;
 use Taro\DBModel\Query\Relations\BelongsToThrough;
 use Taro\DBModel\Query\Relations\HasMany;
 use Taro\DBModel\Query\Relations\HasManyThrough;
 use Taro\DBModel\Query\Relations\HasOne;
 use Taro\DBModel\Query\Relations\ManyToMany;
+use Taro\DBModel\Query\Relations\RelationParams;
+use Taro\DBModel\Utilities\Str;
 
 class Model
 {
@@ -94,19 +97,50 @@ class Model
     }
 
     
-    protected function hasMany(): HasMany
+    protected function hasMany($modelName, $fKey = null, $relKey = 'id', bool $useBindParam = true): HasMany
+    {   
+        if($fKey === null) {
+            $fKey = $this->getForeignKey(static::class);
+        }
+        $fkVal = $this->{$relKey};
+        $params = new RelationParams([
+            'fKey'=>$fKey,
+            'fkVal'=>$fkVal,
+            'modelName'=>$modelName,
+        ]);
+
+        return QueryBuilderFactory::createRelation(QueryBuilderFactory::HAS_MANY_RELATION, $this->getDbManipulator(), $modelName, $params, $useBindParam);
+    }
+
+    protected function belongsTo($modelName, $fKey = null, $relKey = 'id', bool $useBindParam = true): BelongsTo    
     {
+        if($fKey === null) {
+            $fKey = $this->getForeignKey($modelName);
+        }        
+        $pkVal = $this->{$fKey};
+        $params = new RelationParams([
+            'pKey'=>$relKey,
+            'pkVal'=>$pkVal,
+            'modelName'=>$modelName,            
+        ]);
+
+        return QueryBuilderFactory::createRelation(QueryBuilderFactory::BELONGS_TO_RELATION, $this->getDbManipulator(), $modelName, $params, $useBindParam);
 
     }
 
-    protected function belongsTo(): BelongsTo    
+    protected function hasOne($modelName, $fKey = null, $relKey = 'id', bool $useBindParam = true): HasOne    
     {
+        if($fKey === null) {
+            $fKey = $this->getForeignKey(static::class);
+        }        
+        $fkVal = $this->{$relKey};
+        $params = new RelationParams([
+            'fKey'=>$fKey,
+            'fkVal'=>$fkVal,
+            'modelName'=>$modelName,
+        ]);
 
-    }
-
-    protected function hasOne(): HasOne    
-    {
-
+        return QueryBuilderFactory::createRelation(QueryBuilderFactory::HAS_ONE_RELATION, $this->getDbManipulator(), $modelName, $params, $useBindParam);
     }
 
     protected function manyToMany(): ManyToMany    
@@ -124,7 +158,12 @@ class Model
 
     }
 
-    
+
+    protected function getForeignKey($modelName)
+    {
+        return Str::snakeCase(Str::getShortClassName($modelName)) . '_id';
+    }
+
     protected function dehydrate():array
     {
         

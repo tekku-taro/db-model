@@ -26,5 +26,9 @@ class HasOne extends QueryBuilder
             ->where($this->fKey, 'IS NOT', null);
     }
 
-
+    protected function addRelationalColumns(array $record)
+    {
+        $record += [$this->fKey => $this->fkVal];
+        return $record;
+    }
 }

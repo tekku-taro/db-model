@@ -11,4 +11,9 @@ class User extends Model
     
     protected $password;
 
+    public function relatedPosts()
+    {
+        return $this->hasMany(Post::class , 'user_id');
+    }
+
 }
