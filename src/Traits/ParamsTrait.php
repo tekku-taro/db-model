@@ -28,7 +28,7 @@ trait ParamsTrait
     
     protected function replacePlaceholder($value):string
     {
-        if($this->useBindParam) {
+        if($this->useBindParam && $value !== null) {
             if($value[0] === ':') {
                 return $value;
             }
