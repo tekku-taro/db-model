@@ -3,6 +3,7 @@ namespace Taro\DBModel\DB;
 
 use PDO;
 use PDOException;
+use Taro\DBModel\Exceptions\DatabaseConnectionException;
 
 class DbConnection
 {
@@ -33,8 +34,7 @@ class DbConnection
             return $dbh;
 
         } catch (PDOException $e) {
-            print "PDO接続エラー: " . $e->getMessage();
-            die();
+            throw new DatabaseConnectionException($connName.'に接続できませんでした。');
         }
     }
 

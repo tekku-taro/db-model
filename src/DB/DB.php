@@ -2,7 +2,7 @@
 namespace Taro\DBModel\DB;
 
 use PDO;
-use Taro\DBModel\Exceptions\DatabaseNotConnectedException;
+use Taro\DBModel\Exceptions\DatabaseConnectionException;
 use Taro\DBModel\Utilities\FileHandler;
 
 class DB
@@ -29,7 +29,7 @@ class DB
     {
         $dbh = DbConnection::getConnection($connName);
         if($dbh === null) {
-            throw new DatabaseNotConnectedException($connName);
+            throw new DatabaseConnectionException($connName.'と接続されていません。');
         }
         return $dbh; 
     }
