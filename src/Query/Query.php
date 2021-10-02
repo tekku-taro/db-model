@@ -53,6 +53,11 @@ class Query
         return $this->dbManipulator->executeAndStatement($compiled, $this->params);
     }
 
+    public function executeWithoutCompile():PDOStatement
+    {
+        return $this->dbManipulator->executeAndStatement($this->compiled, $this->params);
+    }
+
     public function getParams():array
     {
         return $this->params;

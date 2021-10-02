@@ -31,6 +31,32 @@ class DirectSql extends BaseBuilder
         return $this;
     }
 
+
+    public function runSql()
+    {
+        $statement = $this->query->executeWithoutCompile();
+
+        if($this->isSelectQuery()) {
+            $result = $statement->fetchAll();
+        } else {
+            $result = true;
+        }
+
+        $statement = null;
+        if($result === false) {
+            return null;
+        }
+        return $result;
+    }
+
+    protected function isSelectQuery()
+    {
+        if(preg_match('/^select /i', trim($this->query->getCompiled()))) {
+            return true;
+        }
+        return false;
+    }
+
     public function table($table):self
     {
         $this->query->table = $table;
