@@ -4,21 +4,16 @@ use PHPUnit\Framework\TestCase;
 use Taro\DBModel\DB\DB;
 use Taro\DBModel\Query\DirectSql;
 use Taro\DBModel\Models\Post;
+use Taro\Tests\Fixtures\PostFixture;
+use Taro\Tests\Traits\TableSetupTrait;
 
 class DirectSqlTest extends TestCase
 {
-    private $connName = 'mysql';
+    use TableSetupTrait;
 
     /** @var DB $db */
     private $db;
 
-    private $sampleData = [
-        ['title'=>'test1', 'views'=>'5', 'finished'=>0, 'hidden'=>'secret' ],
-        ['title'=>'test2', 'views'=>'4', 'finished'=>1, 'hidden'=>'secret' ],
-        ['title'=>'test3', 'views'=>'1', 'finished'=>1, 'hidden'=>'public' ],
-        [ 'title'=>'test4', 'views'=>'2', 'finished'=>1, 'hidden'=>'public' ],
-        [ 'title'=>'test5', 'views'=>'3', 'finished'=>0, 'hidden'=>'public' ],
-    ];
 
     public function setUp():void
     {
@@ -32,56 +27,20 @@ class DirectSqlTest extends TestCase
         $this->db->stop();
     }
 
-    private function clearTable($tableName)
-    {
-        $sql = 'DELETE FROM ' . $tableName . ' WHERE 1 = 1;';
-        $dbh = $this->db->getPdo();
-        $stmt = $dbh->query($sql);
-
-    }
-
-    private function setupConnection()
-    {
-        $this->db = DB::start($this->connName, true);
-    }
-
-    private function seeInDatabase($table, $data)
-    {
-        $sql = 'SELECT count(*) FROM ' . $table . ' WHERE ';
-        foreach ($data as $key => $value) {
-            $whereClause[] = $key . ' = "' . $value . '"';
-        }
-
-        $sql .= implode(' AND ', $whereClause);
-
-        $dbh = $this->db->getPdo();
-
-        $stmt = $dbh->query($sql);
-        if ($stmt->fetchColumn() > 0) {
-            return true;
-        }
-        return false;
-    }
-
-    private function fillTable($tableName)
-    {
-        DirectSql::query()->table($tableName)->bulkInsert($this->sampleData);
-    }
-
     public function testInsert()
     {
         $this->clearTable('posts');
-        DirectSql::query()->table('posts')->insert($this->sampleData[0]);
+        DirectSql::query()->table('posts')->insert(PostFixture::$default[0]);
 
-        $this->assertTrue($this->seeInDatabase('posts', $this->sampleData[0]));
+        $this->assertTrue($this->seeInDatabase('posts', PostFixture::$default[0]));
     }
 
     public function testBulkInsert()
     {
         $this->clearTable('posts');
-        DirectSql::query()->table('posts')->bulkInsert($this->sampleData);
+        DirectSql::query()->table('posts')->bulkInsert(PostFixture::$default);
         
-        $failures = array_filter($this->sampleData, function($record) {
+        $failures = array_filter(PostFixture::$default, function($record) {
             return !$this->seeInDatabase('posts', $record);
         });
 
@@ -94,9 +53,9 @@ class DirectSqlTest extends TestCase
         $sql = 'SELECT * FROM posts WHERE title = :title';
         $query = DirectSql::query()->prepareSql($sql);
         $query->bindParam(':title', 'test1');
-        $results = $query->getAsArray();
+        $results = $query->runSql();
 
-        $expected = $this->sampleData[0];
+        $expected = PostFixture::$default[0];
         // print_r($results);
         $this->assertEquals($expected, array_intersect_key($results[0],$expected));
     }

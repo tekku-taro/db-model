@@ -15,6 +15,15 @@ class Str
         return ltrim($result, '_');
     }
 
+    public static function pascalCase(string $name):string
+    {
+        $name = strtolower($name);
+        $name = str_replace('_', ' ', $name);
+        $name = ucwords($name);
+        $name = str_replace(' ', '', $name);
+        return rtrim($name, 's');
+    }
+
 
     public static function modifyOperatorIfNull($operator, $value)
     {
