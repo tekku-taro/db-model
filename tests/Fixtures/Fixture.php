@@ -3,6 +3,7 @@ namespace Taro\Tests\Fixtures;
 
 use Taro\DBModel\Exceptions\FixtureNotFoundException;
 use Taro\DBModel\Query\DirectSql;
+use Taro\DBModel\Utilities\Inflect;
 use Taro\DBModel\Utilities\Str;
 
 class Fixture
@@ -31,6 +32,6 @@ class Fixture
 
         $className = Str::getShortClassName(static::class);
         $modelName = str_replace('Fixture', '', $className);
-        return Str::snakeCase($modelName) . 's';
+        return Inflect::pluralize(Str::snakeCase($modelName));
     }
 }

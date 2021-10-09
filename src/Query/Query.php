@@ -5,6 +5,7 @@ use PDOStatement;
 use Taro\DBModel\DB\DbManipulator;
 use Taro\DBModel\Exceptions\WrongSqlException;
 use Taro\DBModel\Traits\SqlBaseTrait;
+use Taro\DBModel\Utilities\Inflect;
 use Taro\DBModel\Utilities\Str;
 
 class Query
@@ -43,7 +44,7 @@ class Query
         $this->dbManipulator = $dbManipulator;
         $this->modelName = $modelName;
         if($modelName !== null) {
-            $this->table = Str::snakeCase(Str::getShortClassName($this->modelName)) . 's';
+            $this->table = Inflect::pluralize(Str::snakeCase(Str::getShortClassName($this->modelName)));
         }
     }    
 

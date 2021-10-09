@@ -4,6 +4,7 @@ namespace Taro\DBModel\DataMapping;
 use Taro\DBModel\DB\DbManipulator;
 use Taro\DBModel\Traits\ParamsTrait;
 use Taro\DBModel\Traits\SqlBaseTrait;
+use Taro\DBModel\Utilities\Inflect;
 use Taro\DBModel\Utilities\Str;
 
 class DataMapper
@@ -25,7 +26,7 @@ class DataMapper
     {
         $this->dbManipulator = $dbManipulator;
         $this->modelName = $modelName;
-        $this->table = Str::snakeCase(Str::getShortClassName($this->modelName)) . 's';
+        $this->table = $this->table = Inflect::pluralize(Str::snakeCase(Str::getShortClassName($this->modelName)));
     }    
 
     public function executeInsert($record)
