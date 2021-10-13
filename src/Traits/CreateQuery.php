@@ -2,6 +2,7 @@
 namespace Taro\DBModel\Traits;
 
 use Taro\DBModel\Exceptions\WrongSqlException;
+use Taro\DBModel\Query\JoinFactory;
 use Taro\DBModel\Utilities\Str;
 
 trait CreateQuery
@@ -56,16 +57,43 @@ trait CreateQuery
         return $this;
     }
 
-    public function join(string $tableName, string $type = 'INNER JOIN'):self
+    public function join(string $tableName):self
     {
-        $this->query->joins[] = ['table'=>$tableName, 'type' => $type];
+        $joinBuilder = JoinFactory::create(JoinFactory::JOIN, $this->query->table);
+        $joinBuilder->joinTable($tableName);
+        $this->query->joins[] = $joinBuilder;
         return $this;        
     }
 
-    public function on($leftId, $op, $rightId):self
+    public function leftJoin(string $tableName):self
     {
-        $onClause = 'ON (' . $leftId . $op . $rightId . ') ';
-        end($this->query->joins)['on'] = $onClause;        
+        $join = JoinFactory::create(JoinFactory::LEFT_JOIN, $tableName);
+        $this->query->joins[] = $join;
+        return $this;        
+    }
+
+    public function rightJoin(string $tableName):self
+    {
+        $join = JoinFactory::create(JoinFactory::RIGHT_JOIN, $tableName);
+        $this->query->joins[] = $join;
+        return $this;        
+    }
+
+    public function outerJoin(string $tableName):self
+    {
+        $join = JoinFactory::create(JoinFactory::OUTER_JOIN, $tableName);
+        $this->query->joins[] = $join;
+        return $this;        
+    }
+
+    public function on($leftKey, $rightKey):self
+    {
+        $lastKey = array_key_last($this->query->joins);
+        if($lastKey !== null) {
+            $this->query->joins[$lastKey]->on($leftKey, $rightKey);
+        } else {
+            throw new WrongSqlException(' on() は join() の後に使用してください。 ');
+        }     
         return $this;
     }
 

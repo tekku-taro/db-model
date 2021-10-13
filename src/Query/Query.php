@@ -4,6 +4,7 @@ namespace Taro\DBModel\Query;
 use PDOStatement;
 use Taro\DBModel\DB\DbManipulator;
 use Taro\DBModel\Exceptions\WrongSqlException;
+use Taro\DBModel\Query\Joins\Join;
 use Taro\DBModel\Traits\SqlBaseTrait;
 use Taro\DBModel\Utilities\Inflect;
 use Taro\DBModel\Utilities\Str;
@@ -114,8 +115,9 @@ class Query
         }
 
         $joinClause = '';
-        foreach ($this->joins as $joint) {
-            $joinClause .= $joint['type'] . ' ' . $joint['table'] . ' ' . $joint['on'] . ' ';
+        /** @var Join $join */
+        foreach ($this->joins as $join) {
+            $joinClause .= $join->toSql();
         }
 
         return $joinClause;
