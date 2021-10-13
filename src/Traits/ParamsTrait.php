@@ -15,6 +15,12 @@ trait ParamsTrait
         return $this;        
     }
 
+    public function bindParamList(array $params)
+    {
+        $this->query->params += $params;
+        return $this;        
+    }
+
     protected function placeholdersForRecord($record): array
     {
         $values = array_map(function($value) {

@@ -4,6 +4,7 @@ use PHPUnit\Framework\TestCase;
 use Taro\DBModel\DB\DB;
 use Taro\DBModel\Query\DirectSql;
 use Taro\DBModel\Models\Post;
+use Taro\DBModel\Query\Clauses\Wh;
 use Taro\Tests\Fixtures\PostFixture;
 use Taro\Tests\Traits\TableSetupTrait;
 
@@ -129,6 +130,48 @@ class DirectSqlTest extends TestCase
 
         $this->assertCount(3, $posts);
     }
+
+    public function testWhereWithWh()
+    {
+        $query = DirectSql::query()->table('posts')->select('title');
+        $where = new Wh();       
+        $where->addAnd('views', '>', '2');
+        $where->addAnd('hidden','public');
+        $where->addOr('title', 'test3');
+        $query->addWhClause($where);
+
+        $posts = $query->getAsArray();
+        // var_export($posts);
+        $expected = [
+            array (  
+              'title' => 'test3',
+            ),
+            array (
+              'title' => 'test5',
+            ),
+        ];
+
+        $this->assertEquals($expected, $posts);
+
+        $query2 = DirectSql::query()->table('posts')->select('title');
+        $where = new Wh();
+        $where->addBlock(
+            Wh::and(
+                Wh::block('hidden', 'public'),
+                Wh::or(
+                    Wh::block('views', '>', '2'),
+                    Wh::block('title', 'test3')
+                )
+            )
+        );    
+        $query2->addWhClause($where);
+
+        $posts = $query2->getAsArray();
+        // var_export($posts);
+
+        $this->assertEquals($expected, $posts);
+    } 
+
 
     public function testBindParam()
     {

@@ -2,6 +2,7 @@
 namespace Taro\DBModel\Traits;
 
 use Taro\DBModel\Exceptions\WrongSqlException;
+use Taro\DBModel\Query\Clauses\Wh;
 use Taro\DBModel\Query\JoinFactory;
 use Taro\DBModel\Utilities\Str;
 
@@ -123,9 +124,14 @@ trait CreateQuery
         return $this;   
     }
 
-    public function addWhere()   
+    public function addWhClause(Wh $where)   
     {
+        $clause = $where->compile();
+        $whParams = $where->getParams();
 
+        $this->query->where[] = $clause;
+        $this->bindParamList($whParams);
+        return $this;   
     }
 
 }
