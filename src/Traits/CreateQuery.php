@@ -7,7 +7,7 @@ use Taro\DBModel\Utilities\Str;
 
 trait CreateQuery
 {
-    public function select(...$selectors):self
+    public function select(...$selectors)
     {
         $this->query->selectors = array_merge($this->query->selectors, $selectors);
         return $this;        
@@ -15,7 +15,7 @@ trait CreateQuery
 
 
 
-    public function where(...$args):self
+    public function where(...$args)
     {
         $column = $args[0];
         if(count($args) == 2) {
@@ -38,14 +38,14 @@ trait CreateQuery
         return $this;        
     }
 
-    public function whereRaw(string $sql):self
+    public function whereRaw(string $sql)
     {
         $this->query->where[] = $sql;
 
         return $this;       
     }
 
-    public function orderBy(string $column, string $order = 'DESC'):self
+    public function orderBy(string $column, string $order = 'DESC')
     {
         $this->query->orderBy[] = [$column, $order];        
         return $this;
@@ -57,7 +57,7 @@ trait CreateQuery
         return $this;
     }
 
-    public function join(string $tableName):self
+    public function join(string $tableName)
     {
         $joinBuilder = JoinFactory::create(JoinFactory::JOIN, $this->query->table);
         $joinBuilder->joinTable($tableName);
@@ -65,28 +65,28 @@ trait CreateQuery
         return $this;        
     }
 
-    public function leftJoin(string $tableName):self
+    public function leftJoin(string $tableName)
     {
         $join = JoinFactory::create(JoinFactory::LEFT_JOIN, $tableName);
         $this->query->joins[] = $join;
         return $this;        
     }
 
-    public function rightJoin(string $tableName):self
+    public function rightJoin(string $tableName)
     {
         $join = JoinFactory::create(JoinFactory::RIGHT_JOIN, $tableName);
         $this->query->joins[] = $join;
         return $this;        
     }
 
-    public function outerJoin(string $tableName):self
+    public function outerJoin(string $tableName)
     {
         $join = JoinFactory::create(JoinFactory::OUTER_JOIN, $tableName);
         $this->query->joins[] = $join;
         return $this;        
     }
 
-    public function on($leftKey, $rightKey):self
+    public function on($leftKey, $rightKey)
     {
         $lastKey = array_key_last($this->query->joins);
         if($lastKey !== null) {
@@ -97,14 +97,14 @@ trait CreateQuery
         return $this;
     }
 
-    public function groupBy(...$args):self
+    public function groupBy(...$args)
     {
         $this->query->groupBy = $args;
         return $this;        
     }    
 
 
-    public function whereIn($column, $value):self    
+    public function whereIn($column, $value)    
     {
         if(!is_array($value)) {
             throw new WrongSqlException($value . 'は配列でなければいけません。');
@@ -112,7 +112,7 @@ trait CreateQuery
         return $this->where($column, 'IN', $value);
     }
 
-    public function whereBetween($column, $min, $max):self    
+    public function whereBetween($column, $min, $max)    
     {
 
         $min = $this->replacePlaceholder($min);
@@ -123,7 +123,7 @@ trait CreateQuery
         return $this;   
     }
 
-    public function addWhere():self   
+    public function addWhere()   
     {
 
     }

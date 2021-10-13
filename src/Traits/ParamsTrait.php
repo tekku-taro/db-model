@@ -9,7 +9,7 @@ trait ParamsTrait
     private $useBindParam = true;
 
 
-    public function bindParam($paramName, $value):self
+    public function bindParam($paramName, $value)
     {
         $this->query->params[$paramName] = $value;
         return $this;        
@@ -41,7 +41,7 @@ trait ParamsTrait
 
     }  
 
-    protected function parseTypes($value)
+    protected function parseTypes($value):mixed
     {
         if(is_null($value)) {
             return 'NULL';

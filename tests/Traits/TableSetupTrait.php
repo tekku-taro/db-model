@@ -2,7 +2,6 @@
 namespace Taro\Tests\Traits;
 
 use Taro\DBModel\DB\DB;
-use Taro\DBModel\Query\DirectSql;
 use Taro\DBModel\Utilities\Str;
 use Taro\Tests\Fixtures\Fixture;
 
