@@ -47,7 +47,7 @@ trait ParamsTrait
 
     }  
 
-    protected function parseTypes($value):mixed
+    protected function parseTypes($value)
     {
         if(is_null($value)) {
             return 'NULL';

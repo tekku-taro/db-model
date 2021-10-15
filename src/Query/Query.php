@@ -210,5 +210,12 @@ class Query
         return true;
     }
 
+    public function setSelector($selector)
+    {
+        if(strpos($selector, '.') === false) {
+            $selector = $this->table . '.' . $selector;
+        }
+        $this->selectors[] = $selector;
+    }
 
 }

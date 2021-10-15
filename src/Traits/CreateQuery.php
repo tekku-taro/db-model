@@ -10,7 +10,9 @@ trait CreateQuery
 {
     public function select(...$selectors)
     {
-        $this->query->selectors = array_merge($this->query->selectors, $selectors);
+        foreach ($selectors as $selector) {
+            $this->query->setSelector($selector);            
+        }
         return $this;        
     }
 

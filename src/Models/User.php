@@ -16,4 +16,9 @@ class User extends Model
         return $this->hasMany(Post::class , 'user_id');
     }
 
+    public function favoritePosts()
+    {
+        return $this->manyToMany(Post::class , 'favorites');
+    }
+
 }
