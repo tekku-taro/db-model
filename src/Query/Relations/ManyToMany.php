@@ -32,11 +32,11 @@ class ManyToMany extends QueryBuilder
         $this->relKey = $params->relKey;
         $this->pivotTable = $params->pivotTable;
         $this->modelName = $params->modelName;
-        $this->fkVal = $params->fkVal;
+        $this->relkVal = $params->relkVal;
 
         $this->join($this->pivotTable)
             ->on($this->pKey, $this->fKey)
-            ->where($this->relKey, $this->relkVal)
+            ->where($this->pivotTable . '.' . $this->relKey, $this->relkVal)
             ;
     }
 
@@ -78,12 +78,15 @@ class ManyToMany extends QueryBuilder
 
         if(!empty($conditions)) {
             $where = new Wh;
-            foreach ($conditions as $column => $value) {
-                $where->addAnd($column, $value);
+            foreach ($conditions as $condition) {
+                ['column'=>$column, 'operand'=>$operand, 'value'=>$value] = Wh::reform($condition);
+                
+                $where->addAnd($column, $operand, $value);
             }
             $query->addWhClause($where);
         }
 
         return $query;
     }
+
 }

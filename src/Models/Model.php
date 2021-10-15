@@ -143,10 +143,26 @@ class Model
         return QueryBuilderFactory::createRelation(QueryBuilderFactory::HAS_ONE_RELATION, $this->getDbManipulator(), $modelName, $params, $useBindParam);
     }
 
-    protected function manyToMany(): ManyToMany    
-    {
-
-    }
+        protected function manyToMany($relatedModel, $pivoteTable, $pivoteFKey = null, $pivoteRelKey = null, $localKey = 'id', $relKey = 'id', bool $useBindParam = true): ManyToMany
+        {
+            if ($pivoteFKey === null) {
+                $pivoteFKey = self::getForeignKey(static::class);
+            }
+            if ($pivoteRelKey === null) {
+                $pivoteRelKey = self::getForeignKey($relatedModel);
+            }
+            $localVal = $this->{$localKey};
+            $params = new RelationParams([
+                'pKey' => $relKey,
+                'fKey' => $pivoteRelKey,
+                'relKey' => $pivoteFKey,
+                'pivotTable' =>  $pivoteTable,
+                'modelName' => $relatedModel,
+                'relkVal' => $localVal
+            ]); 
+    
+            return QueryBuilderFactory::createRelation(QueryBuilderFactory::MANY_TO_MANY_RELATION, $this->getDbManipulator(), $relatedModel, $params, $useBindParam);
+        }
 
     protected function belongsToThrough(): BelongsToThrough
     {
@@ -159,7 +175,7 @@ class Model
     }
 
 
-    protected function getForeignKey($modelName)
+    protected static function getForeignKey($modelName)
     {
         return Str::snakeCase(Str::getShortClassName($modelName)) . '_id';
     }
