@@ -112,7 +112,7 @@ class Wh
     public static function reform(array $args):array
     {
         if(count($args) < 2) {
-            throw new WrongSqlException('WHERE 句の引数、または絞り込む条件は2つ以上ある必要があります。');      
+            throw new WrongSqlException('WHERE 句の引数、または絞り込む条件の配列要素は2つ以上ある必要があります。');      
         }
 
         $column = $args[0];

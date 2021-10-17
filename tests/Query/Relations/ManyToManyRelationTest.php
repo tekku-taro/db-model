@@ -34,6 +34,7 @@ class ManyToManyRelationTest extends TestCase
     {
         $this->clearTable('posts');   
         $this->clearTable('users');   
+        $this->clearTable('favorites');   
         $this->db->stop();
     }
 
