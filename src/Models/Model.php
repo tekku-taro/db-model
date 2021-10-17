@@ -14,6 +14,7 @@ use Taro\DBModel\Query\Relations\HasManyThrough;
 use Taro\DBModel\Query\Relations\HasOne;
 use Taro\DBModel\Query\Relations\ManyToMany;
 use Taro\DBModel\Query\Relations\RelationParams;
+use Taro\DBModel\Utilities\Inflect;
 use Taro\DBModel\Utilities\Str;
 
 class Model
@@ -164,12 +165,29 @@ class Model
             return QueryBuilderFactory::createRelation(QueryBuilderFactory::MANY_TO_MANY_RELATION, $this->getDbManipulator(), $relatedModel, $params, $useBindParam);
         }
 
-    protected function belongsToThrough(): BelongsToThrough
+    protected function hasManyThrough($relatedModel, $middleModel, $middleFKey = null, $relatedFKey = null, $localKey = 'id', $middleLocalKey = 'id', bool $useBindParam = true): HasManyThrough
     {
+        if ($middleFKey === null) {
+            $middleFKey = self::getForeignKey(static::class);
+        }
+        if ($relatedFKey === null) {
+            $relatedFKey = self::getForeignKey($middleModel);
+        }
+        $localVal = $this->{$localKey};
+        $params = new RelationParams([
+            'fKey' => $relatedFKey,
+            'middleFKey' => $middleFKey,
+            'middleLKey' => $middleLocalKey,
+            'middleTable' => Inflect::pluralize(Str::snakeCase(Str::getShortClassName($middleModel))),
+            'modelName' => $relatedModel,
+            'relkVal' => $localVal
+        ]); 
+
+        return QueryBuilderFactory::createRelation(QueryBuilderFactory::HAS_MANY_THROUGH_RELATION, $this->getDbManipulator(), $relatedModel, $params, $useBindParam);
 
     }
-
-    protected function hasManyThrough(): HasManyThrough
+    
+    protected function belongsToThrough(): BelongsToThrough
     {
 
     }

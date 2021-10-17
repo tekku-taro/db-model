@@ -21,4 +21,9 @@ class User extends Model
         return $this->manyToMany(Post::class , 'favorites');
     }
 
+    public function userComments()
+    {
+        return $this->hasManyThrough(Comment::class, Post::class);
+    }
+
 }

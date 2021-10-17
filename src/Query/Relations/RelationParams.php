@@ -10,6 +10,12 @@ class RelationParams
 
     public $relKey;    
 
+    public $middleFKey;
+
+    public $middleLKey;
+    
+    public $middleTable;
+
     public $pivotTable;    
 
     public $modelName;
