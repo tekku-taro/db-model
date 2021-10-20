@@ -74,7 +74,7 @@ class HasManyThroughRelationTest extends TestCase
         $this->assertEquals($expected, $actual);
     }
 
-    public function testBuilderManyToMany()
+    public function testBuilderHasManyThrough()
     {
         /** @var User $user */
         $user = User::query()->findById(1);
