@@ -187,8 +187,25 @@ class Model
 
     }
     
-    protected function belongsToThrough(): BelongsToThrough
+    protected function belongsToThrough($relatedModel, $middleModel, $fKey = null, $middleFKey = null, $middleLocalKey = 'id', $relatedLocalKey = 'id', bool $useBindParam = true): BelongsToThrough
     {
+        if ($fKey === null) {
+            $fKey = self::getForeignKey($middleModel);
+        }
+        if ($middleFKey === null) {
+            $middleFKey = self::getForeignKey($relatedModel);
+        }
+        $fkVal = $this->{$fKey};
+        $params = new RelationParams([
+            'pKey' => $relatedLocalKey,
+            'middleFKey' => $middleFKey,
+            'middleLKey' => $middleLocalKey,
+            'middleTable' => Inflect::pluralize(Str::snakeCase(Str::getShortClassName($middleModel))),
+            'modelName' => $relatedModel,
+            'relkVal' => $fkVal
+        ]); 
+
+        return QueryBuilderFactory::createRelation(QueryBuilderFactory::BELONGS_TO_THROUGH_RELATION, $this->getDbManipulator(), $relatedModel, $params, $useBindParam);
 
     }
 
