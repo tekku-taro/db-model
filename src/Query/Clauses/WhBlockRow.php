@@ -73,6 +73,11 @@ class WhBlockRow implements WhClauseInterface
     {
         self::$level -= 1;
     }   
+
+    public static function resetLevel()
+    {
+        self::$level = 0;
+    }   
     
 
     public function getConjunct(): string

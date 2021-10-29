@@ -17,6 +17,7 @@ class QueryBuilderTest extends TestCase
     public function setUp():void
     {
         $this->setupConnection();
+        $this->clearTable('posts');
         $this->fillTable('posts');
     }
 

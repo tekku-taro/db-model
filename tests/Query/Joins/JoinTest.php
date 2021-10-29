@@ -73,7 +73,7 @@ class JoinTest extends TestCase
     {        
         $query = QueryBuilder::query(Post::class)
             ->join('users')->on('user_id', 'id');
-        $actual = $query->select('title','name')
+        $actual = $query->select('title','users.name')
             ->where('name', 'user1')
             ->getArrayAll();
         // var_export($actual);
@@ -90,8 +90,8 @@ class JoinTest extends TestCase
     {        
         $query = DirectSql::query()->table('posts')
             ->join('users')->on('user_id', 'id');
-        $actual = $query->select('title','name')
-            ->where('name', 'user2')
+        $actual = $query->select('title','users.name')
+            ->where('users.name', 'user2')
             ->getAsArray();
         // var_export($actual);
         $expected = [

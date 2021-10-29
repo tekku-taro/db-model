@@ -135,6 +135,7 @@ class Wh
 
     public function compile() 
     {
+        WhBlockRow::resetLevel();
         return $this->data->compile($this->whParams, $this->useBindParam);
     }
 
