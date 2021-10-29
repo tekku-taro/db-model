@@ -58,7 +58,7 @@ class BelongsToThroughRelationTest extends TestCase
         $expected ='SELECT * FROM users  INNER JOIN posts ON ( users.id = posts.user_id ) WHERE posts.id = 1 ;';
         $this->assertEquals($expected, $actual);
         
-        $actual = $builder->select('name', 'posts.user_id')->getArrayAll();
+        $actual = $builder->select('name', 'posts.user_id')->getArrayAll()->toArray();
         
         // var_export($actual);
         $expected = [  
@@ -74,7 +74,7 @@ class BelongsToThroughRelationTest extends TestCase
     {
         /** @var Comment $comment */
         $comment = Comment::query()->findById(1);
-        $actual = $comment->users()->select('id','name')->getArrayAll();
+        $actual = $comment->users()->select('id','name')->getArrayAll()->toArray();
         
         // var_export($actual);
         $expected = [ 

@@ -3,6 +3,8 @@ namespace Taro\DBModel\Query;
 
 use Taro\DBModel\DB\DB;
 use Taro\DBModel\DB\DbManipulator;
+use Taro\DBModel\Utilities\DataManager\ArrayList;
+use Taro\DBModel\Utilities\DataManager\ObjectList;
 
 class DirectSql extends BaseBuilder
 {
@@ -64,12 +66,14 @@ class DirectSql extends BaseBuilder
     }
 
 
-    public function getAsArray():array
+    public function getAsArray():ArrayList
     {
-        return $this->executeAndFetchAll();
+        $records = $this->executeAndFetchAll();
+
+        return $this->arrayList($records);        
     }
 
-    public function getAsModels(string $className): array
+    public function getAsModels(string $className): ObjectList
     {
         $result = $this->executeAndFetchAll();
         $modelList = $this->hydrateList($result, $className); 

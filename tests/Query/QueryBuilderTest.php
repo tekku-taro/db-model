@@ -4,6 +4,7 @@ use PHPUnit\Framework\TestCase;
 use Taro\DBModel\DB\DB;
 use Taro\DBModel\Models\Post;
 use Taro\DBModel\Query\QueryBuilder;
+use Taro\DBModel\Utilities\DataManager\ObjectList;
 use Taro\Tests\Fixtures\PostFixture;
 use Taro\Tests\Traits\TableSetupTrait;
 
@@ -68,9 +69,9 @@ class QueryBuilderTest extends TestCase
         $results = $query->select('title','finished')
             ->getAll();
 
-        $this->assertTrue(is_array($results));
-        $this->assertInstanceOf(Post::class, $results[0]);
-        $this->assertEquals('test1', $results[0]->title);
+        $this->assertInstanceOf(ObjectList::class, $results);
+        $this->assertInstanceOf(Post::class, $results->first());
+        $this->assertEquals('test1', $results->first()->title);
     }
 
     public function testWhere()
@@ -81,7 +82,7 @@ class QueryBuilderTest extends TestCase
 
         $expected = 'test1';
 
-        $this->assertEquals($expected, $posts[0]->title);
+        $this->assertEquals($expected, $posts->first()->title);
 
         $posts = QueryBuilder::query(Post::class)
             ->where('title', 'IN', ['test1', 'test2'])
@@ -89,7 +90,7 @@ class QueryBuilderTest extends TestCase
 
         $expected = ['test1', 'test2'];
         $this->assertCount(2, $posts);
-        $this->assertEquals($expected, [$posts[0]->title,$posts[1]->title]);
+        $this->assertEquals($expected, [$posts->first()->title,$posts->item(1)->title]);
 
         $posts = QueryBuilder::query(Post::class)
             ->where('views', '>', '2')
@@ -106,7 +107,7 @@ class QueryBuilderTest extends TestCase
 
         $expected = 'test1';
 
-        $this->assertEquals($expected, $posts[0]->title);
+        $this->assertEquals($expected, $posts->first()->title);
     }
 
     public function testOrderBy()
@@ -116,9 +117,9 @@ class QueryBuilderTest extends TestCase
             ->getAll();        
 
         $expected = ['test1','test2','test5','test4','test3'];
-        $actual = array_map(function($post){
+        $actual = $posts->map(function($post){
             return $post->title;
-        }, $posts);
+        })->toArray();
         $this->assertEquals($expected, $actual);
     }
 

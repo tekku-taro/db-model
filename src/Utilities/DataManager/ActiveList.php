@@ -10,7 +10,7 @@ use IteratorAggregate;
  * AcitveList は ArrayList, ObjectList の親抽象クラス
  * 配列として扱え、格納するリストデータを操作する便利なメソッドを提供する
  * 
- * TODO クエリビルダでクエリ実行後の結果は、ActiveList を実装したクラスのオブジェクトとして返される。
+ * クエリビルダでクエリ実行後の結果は、ActiveList を実装したクラスのオブジェクトとして返される。
  */
 abstract class ActiveList implements IteratorAggregate, Countable
 {
@@ -22,7 +22,7 @@ abstract class ActiveList implements IteratorAggregate, Countable
      */    
     protected $list = [];
 
-    public function __construct($list)
+    public function __construct($list = [])
     {
         $this->setList($list);
     }

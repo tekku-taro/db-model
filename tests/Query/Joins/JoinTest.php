@@ -75,7 +75,7 @@ class JoinTest extends TestCase
             ->join('users')->on('user_id', 'id');
         $actual = $query->select('title','users.name')
             ->where('name', 'user1')
-            ->getArrayAll();
+            ->getArrayAll()->toArray();
         // var_export($actual);
         $expected = [
             array (
@@ -92,7 +92,7 @@ class JoinTest extends TestCase
             ->join('users')->on('user_id', 'id');
         $actual = $query->select('title','users.name')
             ->where('users.name', 'user2')
-            ->getAsArray();
+            ->getAsArray()->toArray();
         // var_export($actual);
         $expected = [
             array (

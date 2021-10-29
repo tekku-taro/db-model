@@ -50,7 +50,7 @@ class BasicRelationTest extends TestCase
         $expected ='SELECT * FROM posts WHERE user_id = 2 AND user_id IS NOT NULL ;';
         $this->assertEquals($expected, $actual);
         
-        $actual = $builder->select('title', 'user_id')->getArrayAll();
+        $actual = $builder->select('title', 'user_id')->getArrayAll()->toArray();
         
         // var_export($actual);
         $expected = [
@@ -125,7 +125,7 @@ class BasicRelationTest extends TestCase
         $expected ='SELECT * FROM posts WHERE user_id = 2 AND user_id IS NOT NULL ;';
         $this->assertEquals($expected, $actual);
         
-        $actual = $builder->select('title', 'user_id')->getArrayAll();
+        $actual = $builder->select('title', 'user_id')->getArrayAll()->toArray();
         
         // var_export($actual);
         $expected = [
@@ -153,7 +153,7 @@ class BasicRelationTest extends TestCase
         $expected ='SELECT * FROM users WHERE id = 2 ;';
         $this->assertEquals($expected, $actual);
         
-        $actual = $builder->select('id', 'name')->getArrayAll();
+        $actual = $builder->select('id', 'name')->getArrayAll()->toArray();
         
         // var_export($actual);
         $expected = [

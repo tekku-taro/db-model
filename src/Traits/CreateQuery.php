@@ -54,7 +54,7 @@ trait CreateQuery
         return $this;
     }
 
-    public function limit(int $limit): self
+    public function limit(int $limit)
     {
         $this->query->limit = $limit;         
         return $this;

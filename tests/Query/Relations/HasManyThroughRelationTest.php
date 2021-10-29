@@ -58,7 +58,7 @@ class HasManyThroughRelationTest extends TestCase
         $expected ='SELECT * FROM comments  INNER JOIN posts ON ( comments.post_id = posts.id ) WHERE posts.user_id = 1 ;';
         $this->assertEquals($expected, $actual);
         
-        $actual = $builder->select('title', 'posts.user_id')->getArrayAll();
+        $actual = $builder->select('title', 'posts.user_id')->getArrayAll()->toArray();
         
         var_export($actual);
         $expected = [
@@ -78,7 +78,7 @@ class HasManyThroughRelationTest extends TestCase
     {
         /** @var User $user */
         $user = User::query()->findById(1);
-        $actual = $user->userComments()->select('id','title')->getArrayAll();
+        $actual = $user->userComments()->select('id','title')->getArrayAll()->toArray();
         
         var_export($actual);
         $expected = [

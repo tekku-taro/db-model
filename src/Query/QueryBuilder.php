@@ -3,6 +3,8 @@ namespace Taro\DBModel\Query;
 
 use Taro\DBModel\DB\DB;
 use Taro\DBModel\Models\Model;
+use Taro\DBModel\Utilities\DataManager\ArrayList;
+use Taro\DBModel\Utilities\DataManager\ObjectList;
 use Taro\DBModel\Utilities\Paginator;
 
 class QueryBuilder extends BaseBuilder
@@ -22,15 +24,17 @@ class QueryBuilder extends BaseBuilder
         return $this->hydrate($result, $this->modelName);
     }
 
-    public function getAll():array
+    public function getAll():ObjectList
     {
         $results = $this->executeAndFetchAll();
         return $this->hydrateList($results, $this->modelName);
     }
 
-    public function getArrayAll():array    
+    public function getArrayAll():ArrayList
     {
-        return $this->executeAndFetchAll();
+        $records = $this->executeAndFetchAll();
+
+        return $this->arrayList($records);
     }
 
     public function getPaginator(int $number):Paginator    

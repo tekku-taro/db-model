@@ -5,6 +5,8 @@ use Taro\DBModel\DB\DB;
 use Taro\DBModel\Query\DirectSql;
 use Taro\DBModel\Models\Post;
 use Taro\DBModel\Query\Clauses\Wh;
+use Taro\DBModel\Utilities\DataManager\ArrayList;
+use Taro\DBModel\Utilities\DataManager\ObjectList;
 use Taro\Tests\Fixtures\PostFixture;
 use Taro\Tests\Traits\TableSetupTrait;
 
@@ -66,8 +68,13 @@ class DirectSqlTest extends TestCase
     {
         $query = DirectSql::query()->table('posts');
 
-        $results = $query->select('title','finished')
+        $object = $query->select('title','finished')
             ->getAsArray();
+
+
+        $this->assertInstanceOf(ArrayList::class, $object);
+
+        $results = $object->toArray();
 
         $expected = [
             array (
@@ -91,7 +98,6 @@ class DirectSqlTest extends TestCase
               'finished' => 0,
             ),
         ];
-        $this->assertTrue(is_array($results));
         $this->assertEquals($expected, $results);
     }
 
@@ -102,9 +108,9 @@ class DirectSqlTest extends TestCase
         $results = $query->select('title','finished')
             ->getAsModels(Post::class);
 
-        $this->assertTrue(is_array($results));
-        $this->assertInstanceOf(Post::class, $results[0]);
-        $this->assertEquals('test1', $results[0]->title);
+        $this->assertInstanceOf(ObjectList::class, $results);
+        $this->assertInstanceOf(Post::class, $results->first());
+        $this->assertEquals('test1', $results->first()->title);
     }
 
     public function testWhere()
@@ -115,7 +121,7 @@ class DirectSqlTest extends TestCase
 
         $expected = 'test1';
 
-        $this->assertEquals($expected, $posts[0]->title);
+        $this->assertEquals($expected, $posts->first()->title);
 
         $posts = DirectSql::query()->table('posts')
             ->where('title', 'IN', ['test1', 'test2'])
@@ -123,7 +129,7 @@ class DirectSqlTest extends TestCase
 
         $expected = ['test1', 'test2'];
         $this->assertCount(2, $posts);
-        $this->assertEquals($expected, [$posts[0]->title,$posts[1]->title]);
+        $this->assertEquals($expected, [$posts->first()->title,$posts->item(1)->title]);
 
         $posts = DirectSql::query()->table('posts')
             ->where('views', '>', '2')
@@ -141,7 +147,7 @@ class DirectSqlTest extends TestCase
         $where->addOr('title', 'test3');
         $query->addWhClause($where);
 
-        $posts = $query->getAsArray();
+        $posts = $query->getAsArray()->toArray();
         // var_export($posts);
         $expected = [
             array (  
@@ -167,7 +173,7 @@ class DirectSqlTest extends TestCase
         );    
         $query2->addWhClause($where);
 
-        $posts = $query2->getAsArray();
+        $posts = $query2->getAsArray()->toArray();
         // var_export($posts);
 
         $this->assertEquals($expected, $posts);
@@ -182,7 +188,7 @@ class DirectSqlTest extends TestCase
 
         $expected = 'test1';
 
-        $this->assertEquals($expected, $posts[0]->title);
+        $this->assertEquals($expected, $posts->first()->title);
     }
 
     public function testOrderBy()
@@ -193,7 +199,7 @@ class DirectSqlTest extends TestCase
 
         $expected = ['test1','test2','test5','test4','test3'];
 
-        $this->assertEquals($expected, array_column($posts, 'title'));
+        $this->assertEquals($expected, $posts->pluck('title'));
     }
 
     public function testLimit()

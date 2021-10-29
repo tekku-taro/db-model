@@ -58,7 +58,7 @@ class ManyToManyRelationTest extends TestCase
         $expected ='SELECT * FROM posts  INNER JOIN favorites ON ( posts.id = favorites.post_id ) WHERE favorites.user_id = 1 ;';
         $this->assertEquals($expected, $actual);
         
-        $actual = $builder->select('title', 'favorites.user_id')->getArrayAll();
+        $actual = $builder->select('title', 'favorites.user_id')->getArrayAll()->toArray();
         
         var_export($actual);
         $expected = [
@@ -78,7 +78,7 @@ class ManyToManyRelationTest extends TestCase
     {
         /** @var User $user */
         $user = User::query()->findById(1);
-        $actual = $user->favoritePosts()->select('id','title')->getArrayAll();
+        $actual = $user->favoritePosts()->select('id','title')->getArrayAll()->toArray();
         
         var_export($actual);
         $expected = [   

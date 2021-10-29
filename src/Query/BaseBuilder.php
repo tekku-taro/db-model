@@ -5,6 +5,8 @@ use Taro\DBModel\DB\DbManipulator;
 use Taro\DBModel\Models\Model;
 use Taro\DBModel\Traits\CreateQuery;
 use Taro\DBModel\Traits\ParamsTrait;
+use Taro\DBModel\Utilities\DataManager\ArrayList;
+use Taro\DBModel\Utilities\DataManager\ObjectList;
 
 class BaseBuilder
 {
@@ -105,13 +107,24 @@ class BaseBuilder
 
     /**
      * @param array[] $records
-     * @return array<Model>
+     * @return ArrayList
      */
-    protected function hydrateList(array $records, $className):array    
+    protected function arrayList(?array $records = []):ArrayList
     {
-        $modelList = [];
+        $arrayList = new ArrayList($records);
+
+        return $arrayList;
+    }
+
+    /**
+     * @param array[] $records
+     * @return ObjectList
+     */
+    protected function hydrateList(array $records, $className):ObjectList
+    {
+        $modelList = new ObjectList();
         foreach ($records as $record) {
-            $modelList[] = $this->hydrate($record, $className);
+            $modelList->push($this->hydrate($record, $className));
         }
         return $modelList;
     }
