@@ -35,6 +35,15 @@ class ArrayList extends ActiveList
         return $values;
     }
 
+    // element[key] === value の要素を削除する   
+    public function removeIf($key, $value)
+    {
+        $this->setList($this->filter(function($item) use($key, $value) {
+            return $item[$key] !== $value;
+        })->toArray());
+        return $this;
+    }
+
     /**
      * key の値でリストをグループ分けする 
      * 

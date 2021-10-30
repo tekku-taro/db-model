@@ -159,6 +159,10 @@ abstract class ActiveList implements IteratorAggregate, Countable
         return true;
     }
 
+
+    // keyの値 === value の要素を削除する
+    abstract public function removeIf($key, $value);    
+
     /**
      * key の値でリストをグループ分けする 
      * 

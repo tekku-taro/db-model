@@ -14,9 +14,9 @@ class ObjectListTest extends TestCase
             (object)['id'=>2, 'price'=>150],
         ];
 
-        $arrayList1 = new ObjectList($list1);
+        $objectList = new ObjectList($list1);
 
-        $actual = $arrayList1->orderBy('price', 'desc')->toArray();
+        $actual = $objectList->orderBy('price', 'desc')->toArray();
 
         $expected = [
             (object)['id'=>2, 'price'=>150],          
@@ -35,11 +35,32 @@ class ObjectListTest extends TestCase
             (object)['id'=>2, 'price'=>150],
         ];
 
-        $arrayList1 = new ObjectList($list1);
+        $objectList = new ObjectList($list1);
 
-        $actual = $arrayList1->pluck('id');
+        $actual = $objectList->pluck('id');
 
         $expected = [3, 1, 2];
+
+        $this->assertEquals($expected, $actual);
+    }
+
+
+    public function testRemoveIf()
+    {
+        $list1 = [
+            (object)['id'=>3, 'price'=>100],
+            (object)['id'=>1, 'price'=>50],
+            (object)['id'=>2, 'price'=>150],
+        ];
+
+        $objectList = new ObjectList($list1);
+
+        $actual = $objectList->removeIf('id', 1)->toArray();
+
+        $expected = [
+            (object)['id'=>3, 'price'=>100],
+            (object)['id'=>2, 'price'=>150],         
+        ];
 
         $this->assertEquals($expected, $actual);
     }
@@ -52,9 +73,9 @@ class ObjectListTest extends TestCase
             (object)['id'=>1, 'category'=>'cat1', 'name'=>'name1'],
         ];
 
-        $arrayList1 = new ObjectList($list1);
+        $objectList = new ObjectList($list1);
 
-        $actual = $arrayList1->groupBy('category');
+        $actual = $objectList->groupBy('category');
 
         $expected = [
             'cat1' => new ObjectList([
@@ -77,9 +98,9 @@ class ObjectListTest extends TestCase
             (object)['id'=>1, 'category'=>'cat1', 'name'=>'name1'],
         ];
 
-        $arrayList1 = new ObjectList($list1);
+        $objectList = new ObjectList($list1);
 
-        $actual = $arrayList1->getObjectMap('name');
+        $actual = $objectList->getObjectMap('name');
 
         $expected = [
             'name2' => (object)['id'=>2, 'category'=>'cat2', 'name'=>'name2'],
@@ -99,9 +120,9 @@ class ObjectListTest extends TestCase
             (object)['id'=>2, 'name'=>'name2'],
         ];
 
-        $arrayList1 = new ObjectList($list1);
+        $objectList = new ObjectList($list1);
 
-        $arrayList1->orderByCallBack(function($a, $b) {
+        $objectList->orderByCallBack(function($a, $b) {
             return $a->id <=> $b->id;
         });
 
@@ -111,7 +132,7 @@ class ObjectListTest extends TestCase
             (object)['id'=>3, 'name'=>'name3'],            
         ];
 
-        $this->assertEquals($expected, $arrayList1->toArray());
+        $this->assertEquals($expected, $objectList->toArray());
     }
 
     public function testFilter()
@@ -122,9 +143,9 @@ class ObjectListTest extends TestCase
             (object)['id'=>2, 'price'=>150],
         ];
 
-        $arrayList1 = new ObjectList($list1);
+        $objectList = new ObjectList($list1);
 
-        $actual = $arrayList1->filter(function($item) {
+        $actual = $objectList->filter(function($item) {
             return $item->price >= 100;
         })->toArray();
 

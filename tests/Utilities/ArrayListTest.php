@@ -361,6 +361,27 @@ class ArrayListTest extends TestCase
         $this->assertFalse($actual);
     }
 
+    public function testRemoveIf()
+    {
+        $list1 = [
+            ['id'=>3, 'price'=>100],
+            ['id'=>1, 'price'=>50],
+            ['id'=>2, 'price'=>150],
+        ];
+
+        $arrayList1 = new ArrayList($list1);
+
+        $actual = $arrayList1->removeIf('id', 1)->toArray();
+
+        $expected = [
+            ['id'=>3, 'price'=>100],
+            ['id'=>2, 'price'=>150],         
+        ];
+
+        $this->assertEquals($expected, $actual);
+    }
+
+
     public function testCountable()
     {
         $list1 = [
