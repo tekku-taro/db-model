@@ -13,6 +13,7 @@ use Taro\DBModel\Query\Relations\HasMany;
 use Taro\DBModel\Query\Relations\HasManyThrough;
 use Taro\DBModel\Query\Relations\HasOne;
 use Taro\DBModel\Query\Relations\ManyToMany;
+use Taro\DBModel\Query\Relations\RelationBuilder;
 use Taro\DBModel\Query\Relations\RelationParams;
 use Taro\DBModel\Utilities\Inflect;
 use Taro\DBModel\Utilities\Str;
@@ -26,6 +27,8 @@ class Model
     protected $dirties = [];
 
     protected $fields = [];
+
+    protected $dynamicFields = [];
 
     protected static $database;
 
@@ -108,6 +111,7 @@ class Model
             'fKey'=>$fKey,
             'fkVal'=>$fkVal,
             'modelName'=>$modelName,
+            'relatedModelkey'=>$relKey,
         ]);
 
         return QueryBuilderFactory::createRelation(QueryBuilderFactory::HAS_MANY_RELATION, $this->getDbManipulator(), $modelName, $params, $useBindParam);
@@ -122,7 +126,8 @@ class Model
         $params = new RelationParams([
             'pKey'=>$relKey,
             'pkVal'=>$pkVal,
-            'modelName'=>$modelName,            
+            'modelName'=>$modelName, 
+            'relatedModelkey'=>$fKey,           
         ]);
 
         return QueryBuilderFactory::createRelation(QueryBuilderFactory::BELONGS_TO_RELATION, $this->getDbManipulator(), $modelName, $params, $useBindParam);
@@ -139,6 +144,7 @@ class Model
             'fKey'=>$fKey,
             'fkVal'=>$fkVal,
             'modelName'=>$modelName,
+            'relatedModelkey'=>$relKey, 
         ]);
 
         return QueryBuilderFactory::createRelation(QueryBuilderFactory::HAS_ONE_RELATION, $this->getDbManipulator(), $modelName, $params, $useBindParam);
@@ -159,7 +165,8 @@ class Model
                 'relKey' => $pivoteFKey,
                 'pivotTable' =>  $pivoteTable,
                 'modelName' => $relatedModel,
-                'relkVal' => $localVal
+                'relkVal' => $localVal,
+                'relatedModelkey'=>$localKey, 
             ]); 
     
             return QueryBuilderFactory::createRelation(QueryBuilderFactory::MANY_TO_MANY_RELATION, $this->getDbManipulator(), $relatedModel, $params, $useBindParam);
@@ -180,7 +187,8 @@ class Model
             'middleLKey' => $middleLocalKey,
             'middleTable' => Inflect::pluralize(Str::snakeCase(Str::getShortClassName($middleModel))),
             'modelName' => $relatedModel,
-            'relkVal' => $localVal
+            'relkVal' => $localVal,
+            'relatedModelkey'=>$localKey, 
         ]); 
 
         return QueryBuilderFactory::createRelation(QueryBuilderFactory::HAS_MANY_THROUGH_RELATION, $this->getDbManipulator(), $relatedModel, $params, $useBindParam);
@@ -202,7 +210,8 @@ class Model
             'middleLKey' => $middleLocalKey,
             'middleTable' => Inflect::pluralize(Str::snakeCase(Str::getShortClassName($middleModel))),
             'modelName' => $relatedModel,
-            'relkVal' => $fkVal
+            'relkVal' => $fkVal,
+            'relatedModelkey'=>$fKey, 
         ]); 
 
         return QueryBuilderFactory::createRelation(QueryBuilderFactory::BELONGS_TO_THROUGH_RELATION, $this->getDbManipulator(), $relatedModel, $params, $useBindParam);
@@ -219,6 +228,13 @@ class Model
     {
         
     }
+
+    public function setDynamicProperty($name, $value):void
+    {
+        $this->dynamicFields[] = $name;
+        $this->{$name} = $value;
+    }
+
 
     public function __set($name, $value)    
     {
@@ -264,6 +280,10 @@ class Model
                 return true;
             }
         }
+        if(in_array($field, $this->dynamicFields)){
+            $this->{$field} = $value;
+            return true;    
+        }
         return false;
     }
 
@@ -295,6 +315,9 @@ class Model
             if(in_array($field, $this->fields) || $field == 'id') {
                 $this->{$field} = $value;                
                 $originals[$field] = $value;
+            } elseif ($field === RelationBuilder::MAP_KEY) {
+                $this->dynamicFields[] = $field;
+                $this->{$field} = $value;
             }
         }
         $this->setOriginals($originals);

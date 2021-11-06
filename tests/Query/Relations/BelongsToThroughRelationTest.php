@@ -6,6 +6,7 @@ use Taro\DBModel\DB\DbManipulator;
 use Taro\DBModel\Models\Comment;
 use Taro\DBModel\Models\User;
 use Taro\DBModel\Query\Relations\BelongsToThrough;
+use Taro\DBModel\Query\Relations\RelationBuilder;
 use Taro\DBModel\Query\Relations\RelationParams;
 use Taro\Tests\Traits\TableSetupTrait;
 
@@ -55,7 +56,7 @@ class BelongsToThroughRelationTest extends TestCase
     {
         $builder = $this->buildBelongsToThrough(1);
         $actual = $builder->toSql();
-        $expected ='SELECT * FROM users  INNER JOIN posts ON ( users.id = posts.user_id ) WHERE posts.id = 1 ;';
+        $expected ='SELECT users.*,posts.id AS '.RelationBuilder::MAP_KEY.'  FROM users  INNER JOIN posts ON ( users.id = posts.user_id ) WHERE posts.id = 1 ;';
         $this->assertEquals($expected, $actual);
         
         $actual = $builder->select('name', 'posts.user_id')->getArrayAll()->toArray();
@@ -64,7 +65,8 @@ class BelongsToThroughRelationTest extends TestCase
         $expected = [  
             array (
                 'name' => 'user1',
-                'user_id' => 1,   
+                'user_id' => 1,  
+                RelationBuilder::MAP_KEY => 1 
               ),                              
         ];
         $this->assertEquals($expected, $actual);
@@ -81,6 +83,7 @@ class BelongsToThroughRelationTest extends TestCase
             array (
                 'id' => 1,
                 'name' => 'user1',
+                RelationBuilder::MAP_KEY => 1
               ),                             
         ];
         $this->assertEquals($expected, $actual);        

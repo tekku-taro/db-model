@@ -28,7 +28,7 @@ class ObjectList extends ActiveList
     {
         $values = [];
         foreach ($this->list as $item) {
-            if(isset($item->{$key})) {
+            if(property_exists($item, $key)) {
                 $values[] = $item->{$key};
             }
         }

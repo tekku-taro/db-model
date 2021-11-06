@@ -6,6 +6,7 @@ use Taro\DBModel\DB\DbManipulator;
 use Taro\DBModel\Models\Post;
 use Taro\DBModel\Models\User;
 use Taro\DBModel\Query\Relations\ManyToMany;
+use Taro\DBModel\Query\Relations\RelationBuilder;
 use Taro\DBModel\Query\Relations\RelationParams;
 use Taro\Tests\Traits\TableSetupTrait;
 
@@ -55,7 +56,7 @@ class ManyToManyRelationTest extends TestCase
     {
         $builder = $this->buildManyToMany(Post::class, 1);
         $actual = $builder->toSql();
-        $expected ='SELECT * FROM posts  INNER JOIN favorites ON ( posts.id = favorites.post_id ) WHERE favorites.user_id = 1 ;';
+        $expected ='SELECT posts.*,favorites.user_id AS '.RelationBuilder::MAP_KEY.'  FROM posts  INNER JOIN favorites ON ( posts.id = favorites.post_id ) WHERE favorites.user_id = 1 ;';
         $this->assertEquals($expected, $actual);
         
         $actual = $builder->select('title', 'favorites.user_id')->getArrayAll()->toArray();
@@ -65,10 +66,12 @@ class ManyToManyRelationTest extends TestCase
             array (
               'title' => 'test2',
               'user_id' => 1,
+              RelationBuilder::MAP_KEY => 1
             ),
             array (
               'title' => 'test3',
               'user_id' => 1,
+              RelationBuilder::MAP_KEY => 1
             ),            
         ];
         $this->assertEquals($expected, $actual);
@@ -85,10 +88,12 @@ class ManyToManyRelationTest extends TestCase
             array (
                 'id' => 2,
                 'title' => 'test2',
+                RelationBuilder::MAP_KEY => 1
             ),
             array (
                 'id' => 3,
                 'title' => 'test3',
+                RelationBuilder::MAP_KEY => 1
             ),          
         ];
         $this->assertEquals($expected, $actual);        

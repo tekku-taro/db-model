@@ -18,6 +18,8 @@ class Query
 
     public $selectors = [];
 
+    public $otherColumns = [];
+
     public $where;
 
     public $orderBy;
@@ -28,6 +30,7 @@ class Query
 
     public $groupBy;
 
+    /** @var Relationlist $relations */
     public $relations;
 
     public $params = [];
@@ -44,6 +47,7 @@ class Query
     {
         $this->dbManipulator = $dbManipulator;
         $this->modelName = $modelName;
+        $this->relations = new Relationlist;
         if($modelName !== null) {
             $this->table = Inflect::pluralize(Str::snakeCase(Str::getShortClassName($this->modelName)));
         }
@@ -100,9 +104,13 @@ class Query
     private function compileSelectors(): string
     {
         if(empty($this->selectors)) {
-            $selectClause = '*';
+            $selectClause = $this->table . '.*';
         } else {
             $selectClause = implode(',', $this->selectors);
+        }
+
+        if(!empty($this->otherColumns)) {
+            $selectClause .= ',' . implode(',', $this->otherColumns);
         }
 
         return $selectClause;
@@ -217,5 +225,4 @@ class Query
         }
         $this->selectors[] = $selector;
     }
-
 }

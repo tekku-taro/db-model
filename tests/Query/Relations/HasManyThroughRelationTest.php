@@ -6,6 +6,7 @@ use Taro\DBModel\DB\DB;
 use Taro\DBModel\DB\DbManipulator;
 use Taro\DBModel\Models\User;
 use Taro\DBModel\Query\Relations\HasManyThrough;
+use Taro\DBModel\Query\Relations\RelationBuilder;
 use Taro\DBModel\Query\Relations\RelationParams;
 use Taro\Tests\Traits\TableSetupTrait;
 
@@ -55,7 +56,7 @@ class HasManyThroughRelationTest extends TestCase
     {
         $builder = $this->buildHasManyThrough(1);
         $actual = $builder->toSql();
-        $expected ='SELECT * FROM comments  INNER JOIN posts ON ( comments.post_id = posts.id ) WHERE posts.user_id = 1 ;';
+        $expected ='SELECT comments.*,posts.user_id AS '.RelationBuilder::MAP_KEY.'  FROM comments  INNER JOIN posts ON ( comments.post_id = posts.id ) WHERE posts.user_id = 1 ;';
         $this->assertEquals($expected, $actual);
         
         $actual = $builder->select('title', 'posts.user_id')->getArrayAll()->toArray();
@@ -65,10 +66,12 @@ class HasManyThroughRelationTest extends TestCase
             array (
               'title' => 'comment1',
               'user_id' => 1,       
+              RelationBuilder::MAP_KEY => 1
             ),
             array (
               'title' => 'comment3',
               'user_id' => 1,
+              RelationBuilder::MAP_KEY => 1
             ),                     
         ];
         $this->assertEquals($expected, $actual);
@@ -85,10 +88,12 @@ class HasManyThroughRelationTest extends TestCase
             array (
               'id' => 1,
               'title' => 'comment1',
+              RelationBuilder::MAP_KEY => 1
             ),
             array (
               'id' => 3,
               'title' => 'comment3',
+              RelationBuilder::MAP_KEY => 1
             ),                     
         ];
         $this->assertEquals($expected, $actual);        

@@ -47,7 +47,7 @@ class BasicRelationTest extends TestCase
         ]);
         $builder = new HasMany($params, $this->dbManipulator, false);
         $actual = $builder->toSql();
-        $expected ='SELECT * FROM posts WHERE user_id = 2 AND user_id IS NOT NULL ;';
+        $expected ='SELECT posts.* FROM posts WHERE user_id IS NOT NULL AND user_id = 2 ;';
         $this->assertEquals($expected, $actual);
         
         $actual = $builder->select('title', 'user_id')->getArrayAll()->toArray();
@@ -122,7 +122,7 @@ class BasicRelationTest extends TestCase
         ]);
         $builder = new HasOne($params, $this->dbManipulator, false);
         $actual = $builder->toSql();
-        $expected ='SELECT * FROM posts WHERE user_id = 2 AND user_id IS NOT NULL ;';
+        $expected ='SELECT posts.* FROM posts WHERE user_id IS NOT NULL AND user_id = 2 ;';
         $this->assertEquals($expected, $actual);
         
         $actual = $builder->select('title', 'user_id')->getArrayAll()->toArray();
@@ -150,7 +150,7 @@ class BasicRelationTest extends TestCase
         ]);
         $builder = new BelongsTo($params, $this->dbManipulator, false);
         $actual = $builder->toSql();
-        $expected ='SELECT * FROM users WHERE id = 2 ;';
+        $expected ='SELECT users.* FROM users WHERE id = 2 ;';
         $this->assertEquals($expected, $actual);
         
         $actual = $builder->select('id', 'name')->getArrayAll()->toArray();

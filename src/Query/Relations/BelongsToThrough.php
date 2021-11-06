@@ -3,9 +3,12 @@ namespace Taro\DBModel\Query\Relations;
 
 use Taro\DBModel\DB\DbManipulator;
 use Taro\DBModel\Query\QueryBuilder;
+use Taro\DBModel\Traits\EagerBinding;
 
-class BelongsToThrough extends QueryBuilder
+class BelongsToThrough extends RelationBuilder
 {
+    use EagerBinding;
+    
     public $fKey;  
 
     public $middleFKey;  
@@ -20,7 +23,7 @@ class BelongsToThrough extends QueryBuilder
 
     public $relkVal;
 
-    private $canMultiRecords = false;
+    protected $canMultiRecords = false;
 
     public function __construct(RelationParams $params, DbManipulator $dbManipulator, bool $useBindParam = true)
     {
@@ -32,10 +35,15 @@ class BelongsToThrough extends QueryBuilder
         $this->middleTable = $params->middleTable;
         $this->modelName = $params->modelName;
         $this->relkVal = $params->relkVal;
+        $this->relatedModelkey = $params->relatedModelkey;
 
         $this->join($this->middleTable)
             ->on($this->pKey, $this->middleFKey)
             ->where($this->middleTable . '.' . $this->middleLKey, $this->relkVal)
+            ->addColumn($this->middleTable . '.' . $this->middleLKey . ' AS '.RelationBuilder::MAP_KEY.' ')
             ;
+
+            
+        $this->setBindingParams($useBindParam);
     }
 }

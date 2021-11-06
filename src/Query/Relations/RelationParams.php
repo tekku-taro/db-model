@@ -26,6 +26,8 @@ class RelationParams
 
     public $relkVal;
 
+    public $relatedModelkey;
+
     function __construct(array $params)
     {
         foreach ($params as $name => $value) {

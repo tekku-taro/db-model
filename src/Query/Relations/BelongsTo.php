@@ -3,16 +3,19 @@ namespace Taro\DBModel\Query\Relations;
 
 use Taro\DBModel\DB\DbManipulator;
 use Taro\DBModel\Query\QueryBuilder;
+use Taro\DBModel\Traits\EagerBinding;
 
-class BelongsTo extends QueryBuilder
+class BelongsTo extends RelationBuilder
 {
+    use EagerBinding;
+
     public $pKey;
 
     public $modelName;
 
     public $pkVal;
 
-    private $canMultiRecords = false;
+    protected $canMultiRecords = false;
 
     public function __construct(RelationParams $params, DbManipulator $dbManipulator, bool $useBindParam = true)
     {
@@ -21,7 +24,16 @@ class BelongsTo extends QueryBuilder
         $this->pKey = $params->pKey;
         $this->modelName = $params->modelName;
         $this->pkVal = $params->pkVal;
+        $this->relatedModelkey = $params->relatedModelkey;
 
         $this->where($this->pKey, $this->pkVal);
+
+        $this->setBindingParams($useBindParam);
     }
+
+    protected function getMapKey()
+    {
+        return $this->pKey;
+    }
+
 }

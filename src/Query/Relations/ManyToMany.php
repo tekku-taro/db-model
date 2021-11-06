@@ -6,9 +6,12 @@ use Taro\DBModel\Query\BaseBuilder;
 use Taro\DBModel\Query\Clauses\Wh;
 use Taro\DBModel\Query\DirectSql;
 use Taro\DBModel\Query\QueryBuilder;
+use Taro\DBModel\Traits\EagerBinding;
 
-class ManyToMany extends QueryBuilder
+class ManyToMany extends RelationBuilder
 {
+    use EagerBinding;
+    
     public $pKey;
 
     public $fKey;    
@@ -21,7 +24,7 @@ class ManyToMany extends QueryBuilder
 
     public $relkVal;
 
-    private $canMultiRecords = true;
+    protected $canMultiRecords = true;
 
     public function __construct(RelationParams $params, DbManipulator $dbManipulator, bool $useBindParam = true)
     {
@@ -33,11 +36,16 @@ class ManyToMany extends QueryBuilder
         $this->pivotTable = $params->pivotTable;
         $this->modelName = $params->modelName;
         $this->relkVal = $params->relkVal;
+        $this->relatedModelkey = $params->relatedModelkey;
 
         $this->join($this->pivotTable)
             ->on($this->pKey, $this->fKey)
             ->where($this->pivotTable . '.' . $this->relKey, $this->relkVal)
+            ->addColumn($this->pivotTable . '.' . $this->relKey . ' AS '.RelationBuilder::MAP_KEY.' ')
             ;
+
+            
+        $this->setBindingParams($useBindParam);
     }
 
     public function insertPivot($id, $data)
