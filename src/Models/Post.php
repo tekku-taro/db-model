@@ -24,4 +24,9 @@ class Post extends Model
     protected $tags;
     
     protected $create_date;
+
+    public function relatedComments()
+    {
+        return $this->hasMany(Comment::class , 'post_id');
+    }    
 }

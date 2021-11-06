@@ -40,14 +40,20 @@ class QueryBuilder extends BaseBuilder
         return $this;
     }
 
+    public function setRelations(RelationList $relations)
+    {
+        $this->query->relations = $relations;
+        return $this;
+    }
+
     protected function fetchRelatedModels(ObjectList $objectList):ObjectList
     {
-        if(empty($this->query->relations) || count($objectList) === 0) {
+        if(count($this->query->relations) === 0 || count($objectList) === 0) {
             return $objectList;
         }
 
         $relations = $this->pickExistingRelations();
-        /** @var Model $model */
+        
         foreach ($relations as $relation) {
             // モデルのリレーションメソッドのクエリビルダを作成
             /** @var RelationBuilder $relationBuilder */
@@ -59,12 +65,13 @@ class QueryBuilder extends BaseBuilder
             // クエリビルダの updateWhereWithIdList() によって、リレーションの条件をリレーションキーの IDリストで上書きする
             $relationBuilder->updateWhereWithIdList($idList);
             // 余ったリレーション先リストをリレーション先ビルダーに渡す
-            $relationBuilder->eagerLoad($this->query->relations->toArray());
+            $relationBuilder->setRelations($this->query->relations);
             // 実行後に結果のリストから、リレーションキー をキーとした mapを取得
             $modelMap = $relationBuilder->getAsMap();
             // 各モデルの localKey を使って、mapから関連モデルを取り出して、
             // 対応するモデルインスタンスの 動的プロパティに保存。
             foreach ($objectList as $model) {
+                /** @var Model $model */
                 $this->mappingRelatedModels($relation, $modelMap, $model->{$localKey}, $model);
             }
 
@@ -83,7 +90,7 @@ class QueryBuilder extends BaseBuilder
         foreach ($this->query->relations as $idx => $relation) {
             if (method_exists($this->modelName, $relation)) {
                 $existing[] = $relation;
-                $this->query->relations->delete($idx);
+                $this->query->relations->deleteAt($idx);
             }
         }
 
