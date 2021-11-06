@@ -6,8 +6,6 @@ use Taro\DBModel\Traits\EagerBinding;
 
 class HasManyThrough extends RelationBuilder
 {
-    use EagerBinding;
-    
     public $fKey;  
 
     public $middleFKey;  
@@ -39,7 +37,7 @@ class HasManyThrough extends RelationBuilder
         $this->join($this->middleTable)
             ->on($this->fKey, $this->middleLKey)
             ->where($this->middleTable . '.' . $this->middleFKey, $this->relkVal)
-            ->addColumn($this->middleTable . '.' . $this->middleFKey . ' AS '.RelationBuilder::MAP_KEY.' ')
+            ->addColumn($this->middleTable . '.' . $this->middleFKey . ' AS '.self::MAP_KEY.' ')
             ;
 
             

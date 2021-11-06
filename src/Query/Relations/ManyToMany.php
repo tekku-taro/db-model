@@ -9,8 +9,6 @@ use Taro\DBModel\Traits\EagerBinding;
 
 class ManyToMany extends RelationBuilder
 {
-    use EagerBinding;
-    
     public $pKey;
 
     public $fKey;    
@@ -40,7 +38,7 @@ class ManyToMany extends RelationBuilder
         $this->join($this->pivotTable)
             ->on($this->pKey, $this->fKey)
             ->where($this->pivotTable . '.' . $this->relKey, $this->relkVal)
-            ->addColumn($this->pivotTable . '.' . $this->relKey . ' AS '.RelationBuilder::MAP_KEY.' ')
+            ->addColumn($this->pivotTable . '.' . $this->relKey . ' AS '.self::MAP_KEY.' ')
             ;
 
             

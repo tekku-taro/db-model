@@ -5,9 +5,7 @@ use Taro\DBModel\DB\DbManipulator;
 use Taro\DBModel\Traits\EagerBinding;
 
 class HasMany extends RelationBuilder
-{
-    use EagerBinding;
-    
+{   
     public $fKey;
 
     public $modelName;

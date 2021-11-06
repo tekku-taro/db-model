@@ -5,9 +5,7 @@ use Taro\DBModel\DB\DbManipulator;
 use Taro\DBModel\Traits\EagerBinding;
 
 class BelongsToThrough extends RelationBuilder
-{
-    use EagerBinding;
-    
+{    
     public $fKey;  
 
     public $middleFKey;  
@@ -39,7 +37,7 @@ class BelongsToThrough extends RelationBuilder
         $this->join($this->middleTable)
             ->on($this->pKey, $this->middleFKey)
             ->where($this->middleTable . '.' . $this->middleLKey, $this->relkVal)
-            ->addColumn($this->middleTable . '.' . $this->middleLKey . ' AS '.RelationBuilder::MAP_KEY.' ')
+            ->addColumn($this->middleTable . '.' . $this->middleLKey . ' AS '.self::MAP_KEY.' ')
             ;
 
             

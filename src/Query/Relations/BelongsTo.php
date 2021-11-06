@@ -6,8 +6,6 @@ use Taro\DBModel\Traits\EagerBinding;
 
 class BelongsTo extends RelationBuilder
 {
-    use EagerBinding;
-
     public $pKey;
 
     public $modelName;

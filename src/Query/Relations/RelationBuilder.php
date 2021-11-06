@@ -7,10 +7,10 @@ class RelationBuilder extends QueryBuilder
 {
     public const MAP_KEY = 'mapkey';
 
-    private $relatedModelkey;
+    protected $relatedModelkey;
     
     /** @var BindingParams $bindingParams */
-    private $bindingParams;
+    protected $bindingParams;
 
     protected $canMultiRecords;
 
@@ -20,7 +20,7 @@ class RelationBuilder extends QueryBuilder
     }
 
         
-    private function setBindingParams(bool $useBindParam)
+    protected function setBindingParams(bool $useBindParam)
     {
         $this->bindingParams = new BindingParams($this->query, $useBindParam);
     }
@@ -32,7 +32,7 @@ class RelationBuilder extends QueryBuilder
         $whereIdx = $this->bindingParams->whereIdx;
         unset($this->query->where[$whereIdx]);
         $this->where($this->bindingParams->whereColumn,'IN', $idList);
-        if($this->useBindParam) {
+        if($this->bindingParams->useBindParam) {
             unset($this->query->params[$this->bindingParams->paramName]);
         } 
     } 
@@ -54,6 +54,6 @@ class RelationBuilder extends QueryBuilder
 
     protected function getMapKey()
     {
-        return RelationBuilder::MAP_KEY;
+        return self::MAP_KEY;
     }
 }
