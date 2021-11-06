@@ -56,8 +56,8 @@ class HasManyThroughRelationTest extends TestCase
     {
         $builder = $this->buildHasManyThrough(1);
         $actual = $builder->toSql();
-        $expected ='SELECT comments.*,posts.user_id AS '.RelationBuilder::MAP_KEY.'  FROM comments  INNER JOIN posts ON ( comments.post_id = posts.id ) WHERE posts.user_id = 1 ;';
-        $this->assertEquals($expected, $actual);
+        $expected ='SELECT comments.*,posts.user_id AS '. RelationBuilder::MAP_KEY . '  FROM comments  INNER JOIN posts ON ( comments.post_id = posts.id ) WHERE posts.user_id = 1 ;';
+        $this->assertEquals($expected, $actual); //'
         
         $actual = $builder->select('title', 'posts.user_id')->getArrayAll()->toArray();
         
