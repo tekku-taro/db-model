@@ -5,7 +5,6 @@ use Taro\DBModel\DB\DbManipulator;
 use Taro\DBModel\Query\BaseBuilder;
 use Taro\DBModel\Query\Clauses\Wh;
 use Taro\DBModel\Query\DirectSql;
-use Taro\DBModel\Query\QueryBuilder;
 use Taro\DBModel\Traits\EagerBinding;
 
 class ManyToMany extends RelationBuilder

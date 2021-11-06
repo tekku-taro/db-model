@@ -2,7 +2,6 @@
 namespace Taro\DBModel\Query\Relations;
 
 use Taro\DBModel\DB\DbManipulator;
-use Taro\DBModel\Query\QueryBuilder;
 use Taro\DBModel\Traits\EagerBinding;
 
 class BelongsTo extends RelationBuilder
