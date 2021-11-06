@@ -30,7 +30,7 @@ class Query
 
     public $groupBy;
 
-    /** @var Relationlist $relations */
+    /** @var RelationList $relations */
     public $relations;
 
     public $params = [];
@@ -47,7 +47,7 @@ class Query
     {
         $this->dbManipulator = $dbManipulator;
         $this->modelName = $modelName;
-        $this->relations = new Relationlist;
+        $this->relations = new RelationList;
         if($modelName !== null) {
             $this->table = Inflect::pluralize(Str::snakeCase(Str::getShortClassName($this->modelName)));
         }

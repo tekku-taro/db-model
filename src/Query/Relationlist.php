@@ -5,7 +5,7 @@ use ArrayIterator;
 use Countable;
 use IteratorAggregate;
 
-class Relationlist implements IteratorAggregate, Countable
+class RelationList implements IteratorAggregate, Countable
 {
     protected $list = [];
     
@@ -14,7 +14,7 @@ class Relationlist implements IteratorAggregate, Countable
         $this->list = $list;
     }
 
-    public function delete($idx)
+    public function deleteAt($idx)
     {
         unset($this->list[$idx]);
         $this->list = array_values($this->list);
