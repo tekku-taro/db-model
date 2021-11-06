@@ -56,7 +56,8 @@ class ManyToManyRelationTest extends TestCase
     {
         $builder = $this->buildManyToMany(Post::class, 1);
         $actual = $builder->toSql();
-        $expected ='SELECT posts.*,favorites.user_id AS '.RelationBuilder::MAP_KEY.'  FROM posts  INNER JOIN favorites ON ( posts.id = favorites.post_id ) WHERE favorites.user_id = 1 ;';
+        $expected ='SELECT posts.*,favorites.user_id AS '.RelationBuilder::MAP_KEY. //'
+        '  FROM posts  INNER JOIN favorites ON ( posts.id = favorites.post_id ) WHERE favorites.user_id = 1 ;';
         $this->assertEquals($expected, $actual);
         
         $actual = $builder->select('title', 'favorites.user_id')->getArrayAll()->toArray();

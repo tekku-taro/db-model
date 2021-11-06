@@ -56,7 +56,8 @@ class BelongsToThroughRelationTest extends TestCase
     {
         $builder = $this->buildBelongsToThrough(1);
         $actual = $builder->toSql();
-        $expected ='SELECT users.*,posts.id AS '.RelationBuilder::MAP_KEY.'  FROM users  INNER JOIN posts ON ( users.id = posts.user_id ) WHERE posts.id = 1 ;';
+        $expected ='SELECT users.*,posts.id AS '.RelationBuilder::MAP_KEY. //'
+        '  FROM users  INNER JOIN posts ON ( users.id = posts.user_id ) WHERE posts.id = 1 ;';
         $this->assertEquals($expected, $actual);
         
         $actual = $builder->select('name', 'posts.user_id')->getArrayAll()->toArray();
