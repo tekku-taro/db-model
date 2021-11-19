@@ -52,6 +52,71 @@ class BaseBuilder
     }
 
 
+    // 集計関数
+
+    public function count($column = null, $alias = null)
+    {
+        return $this->aggregateMethod('COUNT', $column, $alias);
+    }
+
+    public function average($column, $alias = null)
+    {
+        return $this->aggregateMethod('AVG', $column, $alias);
+    }
+
+    public function max($column, $alias = null)
+    {
+        return $this->aggregateMethod('MAX', $column, $alias);
+    }
+
+    public function min($column, $alias = null)
+    {
+        return $this->aggregateMethod('MIN', $column, $alias);
+    }
+
+    public function sum($column, $alias = null)
+    {
+        return $this->aggregateMethod('SUM', $column, $alias);
+    }
+
+    /**
+     * @param string $method
+     * @param string $column
+     * @param string $alias
+     * @return null|int|ArrayList  groupByでグループ化した場合は、 ArrayList が返される
+     */
+    protected function aggregateMethod($method, $column = null, $alias = null)
+    {
+        if($column === null) {
+            $column = '*';             
+        }
+        if($alias === null) {
+            $alias = $this->createAggregateColumnName($method, $column);
+        }
+
+        $this->query->setAggregateSelector($method, $column, $alias);
+        $results = $this->executeAndFetchAll();
+
+        if($results === null) {
+            return null;
+        }
+
+        if(count($results) === 1 && count($results[0]) === 1) {
+            return $results[0][$alias];
+        }
+
+        return $this->arrayList($results);
+    }
+
+    protected function createAggregateColumnName($method, $column)
+    {
+        if($column === '*') {
+            return strtolower($method);
+        }
+
+        return $column . '_' . strtolower($method);
+    }
+
     protected function checkInput() 
     {
 

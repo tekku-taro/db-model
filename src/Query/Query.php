@@ -28,7 +28,7 @@ class Query
 
     public $offset;
 
-    public $groupBy;
+    public $groupBy = [];
 
     /** @var RelationList $relations */
     public $relations;
@@ -157,7 +157,7 @@ class Query
 
     private function compileGroupBy(): string
     {
-        if(!isset($this->groupBy)) {
+        if(empty($this->groupBy)) {
             return '';
         }
 
@@ -225,4 +225,21 @@ class Query
         }
         $this->selectors[] = $selector;
     }
+
+    public function setAggregateSelector($method, $column, $alias)
+    {
+        $selectors = [];
+       
+        if(strpos($column, '.') === false && $column !== '*') {
+            $column = $this->table . '.' . $column;
+        }
+
+        $selector = $method . '(' . $column . ') AS ' . $alias;
+
+        $selectors[] = $selector;
+        $selectors = array_merge($selectors, $this->groupBy);
+        $this->selectors = $selectors;
+    }
+
+    
 }

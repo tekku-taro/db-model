@@ -74,6 +74,66 @@ class QueryBuilderTest extends TestCase
         $this->assertEquals('test1', $results->first()->title);
     }
 
+    public function testCount()
+    {
+        $query = QueryBuilder::query(Post::class);
+        $results = $query->count();
+
+        $this->assertEquals(5, $results);
+
+        $query = QueryBuilder::query(Post::class);
+        $results = $query->groupBy('hidden')->count('hidden');
+
+        $expected = [
+            ['hidden'=>'public','hidden_count'=>3],
+            ['hidden'=>'secret','hidden_count'=>2],
+        ];
+        $this->assertEquals($expected, $results->toArray());
+
+        $query = QueryBuilder::query(Post::class);
+        $results = $query->groupBy('hidden', 'finished')->count('hidden');
+
+        $expected = [
+            ['hidden'=>'public','finished'=>0,'hidden_count'=>1],
+            ['hidden'=>'public','finished'=>1,'hidden_count'=>2],
+            ['hidden'=>'secret','finished'=>0,'hidden_count'=>1],
+            ['hidden'=>'secret','finished'=>1,'hidden_count'=>1],
+        ];
+        $this->assertEquals($expected, $results->toArray());
+    }
+
+    public function testAverage()
+    {
+        $query = QueryBuilder::query(Post::class);
+        $results = $query->average('views');
+
+        $this->assertEquals(3, $results);
+    }
+
+    public function testSum()
+    {
+        $query = QueryBuilder::query(Post::class);
+        $results = $query->sum('views');
+
+        $this->assertEquals(15, $results);
+    }
+
+    public function testMax()
+    {
+        $query = QueryBuilder::query(Post::class);
+        $results = $query->max('views');
+
+        $this->assertEquals(5, $results);
+    }
+
+    public function testMin()
+    {
+        $query = QueryBuilder::query(Post::class);
+        $results = $query->min('views');
+
+        $this->assertEquals(1, $results);
+    }
+
     public function testWhere()
     {
         $posts = QueryBuilder::query(Post::class)
