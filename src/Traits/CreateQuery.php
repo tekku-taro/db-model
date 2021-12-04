@@ -60,6 +60,12 @@ trait CreateQuery
         return $this;
     }
 
+    public function offset(int $offset)
+    {
+        $this->query->offset = $offset;         
+        return $this;
+    }
+
     public function join(string $tableName)
     {
         $joinBuilder = JoinFactory::create(JoinFactory::JOIN, $this->query->table);

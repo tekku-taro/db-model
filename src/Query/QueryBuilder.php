@@ -4,10 +4,10 @@ namespace Taro\DBModel\Query;
 use Taro\DBModel\DB\DB;
 use Taro\DBModel\Exceptions\WrongSqlException;
 use Taro\DBModel\Models\Model;
+use Taro\DBModel\Query\Pagination\Paginator;
 use Taro\DBModel\Query\Relations\RelationBuilder;
 use Taro\DBModel\Utilities\DataManager\ArrayList;
 use Taro\DBModel\Utilities\DataManager\ObjectList;
-use Taro\DBModel\Utilities\Paginator;
 
 class QueryBuilder extends BaseBuilder
 {
@@ -111,9 +111,51 @@ class QueryBuilder extends BaseBuilder
         return $this->arrayList($records);
     }
 
-    public function getPaginator(int $number):Paginator    
+    public function paginate(int $pageSize):Paginator    
     {
+        return $this->getPaginator($pageSize);
+    }
 
+    public function paginateArray(int $pageSize):Paginator    
+    {
+        return $this->getPaginator($pageSize, true);
+    }
+
+    protected function getPaginator(int $pageSize, $isArrayList = false)
+    {
+        // $_GET から pageNoを取得 又は 0
+        $pageNo = $this->getPageNoFromGET();
+
+        $offset = $pageNo * $pageSize;
+        $paginator = new Paginator();
+        
+        // OFFSET に 4 を指定した場合、最初から 4 番目までのデータを飛ばして 5 番目のデータから取得
+        $this->offset($offset)->limit($pageSize);
+        
+        if($isArrayList) {
+            $list = $this->getArrayAll();
+        } else {
+            $list = $this->getAll();
+        }
+        
+        $totalRecordNum = $this->countTotal(); // 全てのレコード数を取得(limit無効)
+        
+        
+        $paginator->setLinkSettings([
+          'pageSize' => $pageSize,
+          'pageNo' => $pageNo,
+          'totalRecordNum' =>$totalRecordNum,
+          'list' =>$list,
+        ]);
+
+        return $paginator;        
+    }
+
+    protected function getPageNoFromGET()
+    {
+        $request = request();
+
+        return $request->get(Paginator::PAGE_NO_PARAM);
     }
 
     public function findById($id):Model    

@@ -117,6 +117,18 @@ class BaseBuilder
         return $column . '_' . strtolower($method);
     }
 
+
+    protected function countTotal()
+    {
+        [$limit, $offset] = $this->query->clearLimit();
+        $result = $this->aggregateMethod('COUNT', '*', 'count');
+
+        $this->query->limit = $limit;
+        $this->query->offset = $offset;
+        return $result;
+    }
+
+
     protected function checkInput() 
     {
 

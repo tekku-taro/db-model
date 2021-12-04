@@ -94,7 +94,8 @@ class Query
         . $this->compileWhere()
         . $this->compileGroupBy()
         . $this->compileOrderBy()
-        . $this->compileLimit();
+        . $this->compileLimit()
+        . $this->compileOffset();
 
         $this->compiled = $sql . ';';
 
@@ -170,9 +171,26 @@ class Query
             return '';
         }
 
-        return 'LIMIT ' . $this->limit;
+        return 'LIMIT ' . $this->limit . ' ';
     }
 
+    private function compileOffset(): string
+    {
+        if(!isset($this->limit) || !isset($this->offset)) {
+            return '';
+        }
+
+        return 'OFFSET ' . $this->offset . ' ';
+    }
+
+    public function clearLimit():array
+    {
+        $backup = [$this->limit, $this->offset];
+        $this->limit = null;
+        $this->offset = null;
+
+        return $backup;
+    }
 
     public function executeInsert(array $record):bool
     {

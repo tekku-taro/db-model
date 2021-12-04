@@ -4,10 +4,14 @@ namespace Taro\DBModel\Utilities;
 define('DS', DIRECTORY_SEPARATOR);
 
 use Taro\DBModel\Exceptions\FileNotFoundException;
+use Dotenv\Dotenv;
+
 
 class FileHandler
 {
-    public const CONFIG_PATH = __DIR__ . DS . '..'.DS.'Config'.DS.'Database.php';
+    public static $envLoaded = false;
+
+    public const CONFIG_PATH = __DIR__ . DS . '..' . DS .'Config' . DS .'Database.php';
 
     public static function saveAs($filePath, $data): bool
     {
@@ -25,6 +29,11 @@ class FileHandler
 
     public static function loadConfig(): array
     {
+        if(!self::$envLoaded) {
+            $dotenv = Dotenv::createImmutable(__DIR__ . DS . '..' . DS . '..');
+            $dotenv->load();            
+        }
+
         if(!file_exists(self::CONFIG_PATH)) {
             throw new FileNotFoundException(self::CONFIG_PATH . ' の設定ファイルは存在しません。');
         }
