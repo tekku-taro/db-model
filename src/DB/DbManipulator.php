@@ -108,4 +108,16 @@ class DbManipulator
     {
         return $this->dbh->lastInsertId();
     }
+
+    public function exec($sql)
+    {
+
+        $result = $this->dbh->exec($sql);
+
+        if ($result === false) {
+            throw new \Exception($this->dbh->errorInfo()[2]);
+        }        
+
+        return $result;
+    }
 }

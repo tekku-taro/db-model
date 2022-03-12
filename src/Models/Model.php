@@ -30,6 +30,7 @@ class Model
 
     protected $dynamicFields = [];
 
+    /** @var string|null 接続名 */
     protected static $database;
 
     protected $mapper;

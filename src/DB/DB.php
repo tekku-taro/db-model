@@ -2,7 +2,9 @@
 namespace Taro\DBModel\DB;
 
 use PDO;
+use PhpParser\Node\Expr\FuncCall;
 use Taro\DBModel\Exceptions\DatabaseConnectionException;
+use Taro\DBModel\Exceptions\NotFoundException;
 use Taro\DBModel\Utilities\FileHandler;
 
 class DB
@@ -12,6 +14,9 @@ class DB
 
     /** @var DB $globalDb */
     private static $globalDb;
+
+    /** @var array<string,array<string,string>> 接続名 => DB接続情報配列 */
+    private static $configList;
 
     public $connName;
 
@@ -23,6 +28,7 @@ class DB
         $this->connName = $connName;
         $this->config = $config;
         $this->dbh = $dbh;
+        self::setConfig($connName, $config);
     }
 
     private static function getDbhOrThrow(string $connName):PDO
@@ -49,6 +55,37 @@ class DB
         return $this->dbh->rollback();
     }
 
+    /**
+     * @param array<string,string> $config
+     * @return void
+     */    
+    public static function setConfig(string $connName, array $config):void
+    {
+        if (!isset(self::$configList[$connName])) {
+                self::$configList[$connName] = $config;
+        }
+    }
+
+    /**
+     * @param string $connName
+     * @return array<string,string>
+     */
+    public static function getConfig(string $connName):array
+    {
+        if(isset(self::$configList[$connName])) {
+            return self::$configList[$connName];
+        }
+        throw new NotFoundException('DB接続情報が見つかりません！');
+    }
+
+    /**
+     * @return array<string,string>
+     */    
+    public static function getGlobalConfig():array
+    {
+        return self::getConfig(self::$globalDb->connName);
+    }
+
     public static function start(string $connName = null, bool $asGlobal = false): self
     {
         ['config'=>$config, 'connName'=>$connName] = self::loadConfig($connName);
@@ -56,6 +93,7 @@ class DB
         $db = new self($connName, $config, $dbh);
         if($asGlobal) {
             self::$globalDb = $db;
+            self::setConfig($connName, $config);
         }
         return $db;
     }
@@ -108,7 +146,7 @@ class DB
         return  new self($connName, $config, $dbh);
     }
 
-    private static function loadConfig(string $connName = null): array
+    public static function loadConfig(string $connName = null): array
     {
         $config = FileHandler::loadConfig();
         if($connName === null) {
