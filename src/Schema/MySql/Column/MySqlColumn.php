@@ -9,22 +9,25 @@ class MySqlColumn extends Column
     {
         switch ($this->mode) {
             case 'create':
-                $sql = $this->name . ' ' . $this->generateType();
-                if(empty($options = $this->generateOptions())) {
-                    $sql .= ' ' . $options;
-                }
+                $sql = $this->generateClause();
                 break;
             case 'alter':
-                $sql = 'ADD COLUMN ' . $this->name . ' ' . $this->generateType();
-                if(empty($options = $this->generateOptions())) {
-                    $sql .= ' ' . $options;
-                }
+                $sql = 'ADD COLUMN ' . $this->generateClause();
                 break;
             case 'drop':
                 $sql = 'DROP COLUMN ' . $this->name;
                 break;
         }
 
+        return $sql;
+    }
+
+    private function generateClause():string
+    {
+        $sql = $this->name . ' ' . $this->generateType();
+        if(!empty($options = $this->generateOptions())) {
+            $sql .= ' ' . $options;
+        }
         return $sql;
     }
 
