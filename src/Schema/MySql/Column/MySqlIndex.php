@@ -2,23 +2,23 @@
 namespace Taro\DBModel\Schema\MySql\Column;
 
 use Taro\DBModel\Schema\Column\Index;
+use Taro\DBModel\Schema\Table;
 
 class MySqlIndex extends Index
 {
     public function compile(): string
     {
-        switch ($this->mode) {
-            case 'create':
+        switch ($this->action) {
+            case Index::ADD_ACTION:
                 $sql = $this->generateClause();
+                if($this->mode === Table::ALTER_MODE) {
+                    $sql = 'ADD ' . $sql;
+                }
                 break;
-            case 'alter':
-                $sql = 'ADD ' . $this->generateClause();
-                break;
-            case 'drop':
+            case Index::DROP_ACTION:
                 $sql = 'DROP ' . $this->selectIndexOrUnique() . $this->idxName;
                 break;
         }
-
         return $sql;
     }
 

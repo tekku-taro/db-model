@@ -1,7 +1,6 @@
 <?php
 namespace Taro\DBModel\Schema;
 
-use SebastianBergmann\CodeCoverage\Driver\Driver;
 use Taro\DBModel\DB\DB;
 use Taro\DBModel\DB\DbManipulator;
 use Taro\DBModel\Schema\MySql\MySqlTable;
@@ -16,7 +15,7 @@ class Schema
     {
         $table = new Table($name);
         $callback($table);
-        $sql = $table->generateSql();
+        $sql = $table->generateSql(Table::CREATE_MODE);
         $dbManipulator = self::getDbManipulator();
         return $dbManipulator->exec($sql);        
     }
@@ -30,7 +29,7 @@ class Schema
 
     public static function alterTable(Table $table)    
     {
-        $sql = $table->generateSql();
+        $sql = $table->generateSql(Table::ALTER_MODE);
         $dbManipulator = self::getDbManipulator();
         return $dbManipulator->exec($sql); 
     }

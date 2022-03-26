@@ -15,3 +15,18 @@ function request()
 {
     return Request::getInstance();
 }
+
+/**
+ * @param array<mixed> $a
+ * @param array<mixed> $b
+ * @return bool
+ */
+function twoArraysHaveSameElements(array $a, array $b)
+{
+    sort($a);
+    sort($b);
+    if($a == $b) {
+        return true;
+    }
+    return false;
+}

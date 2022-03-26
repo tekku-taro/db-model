@@ -6,7 +6,7 @@ use Taro\DBModel\Schema\Column\ColumnType\ColumnTypeMap;
 
 abstract class Column
 {
-    protected $name;
+    public $name;
 
     protected $length;
 
@@ -15,14 +15,21 @@ abstract class Column
 
     protected $default;
 
-    protected $type;
+    public $type;
 
     /** @var bool */
     protected $unsigned;
 
 
-    /** @var string $mode create/alter/drop  */
+    /** @var string create/alter/drop  */
     protected $mode;
+
+    /** @var string add/change/drop  */
+    protected $action;
+
+    public const ADD_ACTION = 'ADD';
+    public const CHANGE_ACTION = 'CHANGE';
+    public const DROP_ACTION = 'DROP';    
 
     /** @var bool */
     protected $isPk;
@@ -37,9 +44,15 @@ abstract class Column
 
     protected $before;
 
-    function __construct(string $mode, string $name, string $type = 'string')
+    /** @var Column */
+    public $original;    
+
+    protected $rename;
+
+
+    function __construct(string $action, string $name, string $type = 'string')
     {
-        $this->mode = $mode;
+        $this->action = $action;
         $this->name = $name;
         $this->type($type);
     }
@@ -50,10 +63,19 @@ abstract class Column
         return $this;
     }
 
+
+    public function rename(string $name):self
+    {
+        $this->rename = $name;
+        return $this;
+    }    
+
     public function type(string $typeName):self
     {
         if(ColumnTypeMap::includes($typeName)) {
             $this->type = ColumnTypeMap::getDBType($typeName);
+        }elseif(ColumnTypeMap::isType($typeName)) {
+            $this->type = $typeName;
         } else {
             throw new NotFoundException('利用できるカラムのデータ型に' . $typeName . 'というタイプはありません。');
         }

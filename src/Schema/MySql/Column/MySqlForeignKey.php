@@ -3,6 +3,7 @@ namespace Taro\DBModel\Schema\MySql\Column;
 
 use ErrorException;
 use Taro\DBModel\Schema\Column\ForeignKey;
+use Taro\DBModel\Schema\Table;
 
 class MySqlForeignKey extends ForeignKey
 {
@@ -21,25 +22,24 @@ class MySqlForeignKey extends ForeignKey
 
     public function compile(): string
     {
-        switch ($this->mode) {
-            case 'create':
+        switch ($this->action) {
+            case ForeignKey::ADD_ACTION:
                 $sql = $this->generateClause();
+                if($this->mode === Table::ALTER_MODE) {
+                    $sql = 'ADD ' . $sql;
+                }
                 break;
-            case 'alter':
-                $sql = 'ADD ' . $this->generateClause();
-                break;
-            case 'drop':
+            case ForeignKey::DROP_ACTION:
                 $sql = 'DROP FOREIGN KEY ' . $this->fkName;
                 break;
         }
-
         return $sql;
     }
 
     protected function generateClause():string
     {
         return 'FOREIGN KEY ' . $this->fkName . ' ( ' . implode(',', $this->columnNames) . ' ) ' .
-        'REFERENCES ' . $this->referencedTable  . ' ( ' . $this->referencedColumn . ' ) ' .
+        'REFERENCES ' . $this->referencedTable  . ' ( ' . implode(',', $this->referencedColumns) . ' ) ' .
         'ON DELETE ' . $this->onDelete . 'ON UPDATE ' . $this->onUpdate;
     }
 }

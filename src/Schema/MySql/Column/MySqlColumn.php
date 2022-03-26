@@ -7,18 +7,30 @@ class MySqlColumn extends Column
 {
     public function compile(): string
     {
-        switch ($this->mode) {
-            case 'create':
+        switch ($this->action) {
+            case Column::ADD_ACTION:
                 $sql = $this->generateClause();
+                if($this->mode === 'alter') {
+                    $sql = 'ADD COLUMN ' . $sql;
+                }
                 break;
-            case 'alter':
-                $sql = 'ADD COLUMN ' . $this->generateClause();
+            case Column::CHANGE_ACTION:
+                $sql = 'CHANGE COLUMN ' . $this->generateColumnName() . ' ' . $this->generateClause();
                 break;
-            case 'drop':
+            case Column::DROP_ACTION:
                 $sql = 'DROP COLUMN ' . $this->name;
                 break;
         }
 
+        return $sql;
+    }
+
+    private function generateColumnName():string
+    {
+        $sql = $this->name;
+        if($this->rename !== null) {
+            $sql .= ' ' . $this->rename;
+        }
         return $sql;
     }
 

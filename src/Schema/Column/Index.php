@@ -5,9 +5,9 @@ namespace Taro\DBModel\Schema\Column;
 abstract class Index
 {
     /** @var array<string> */
-    protected $columnNames = [];
+    public $columnNames = [];
     
-    protected $idxName;
+    public $name;
 
     /** @var bool */
     protected $unique;
@@ -15,12 +15,30 @@ abstract class Index
     /** @var string create/alter/drop  */
     protected $mode;
 
-    function __construct(...$columnNames)
+    /** @var string add/drop  */
+    protected $action;
+
+    public const ADD_ACTION = 'ADD';
+    public const DROP_ACTION = 'DROP';   
+
+
+    /** @var Index */
+    public $original;  
+
+    function __construct(string $action, $columnNames = [])
     {
+        $this->action = $action;
         $this->columnNames = $columnNames;
-        $this->idxName = $this->generateIdkName();
+        $this->name = $this->generateIdkName();
     }
     
+
+    public function name(string $name):self  
+    {
+        $this->name = $name;
+        return $this;
+    }
+
     public function unique(bool $unique):self
     {
         $this->unique = $unique;

@@ -28,4 +28,9 @@ abstract class ColumnTypeMap
         return in_array($typeName, array_keys(static::TYPE_MAP));
     }
 
+    public static function isType(string $type):bool
+    {
+        return in_array($type, array_column(static::TYPE_MAP, 'type'));
+    }
+
 }
