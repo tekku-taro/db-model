@@ -11,11 +11,18 @@ class Schema
 {
     private static $connName;
 
+    private static function useTableSql():string
+    {
+        $config = DB::getConfig(self::$connName);      
+        return 'use ' . $config['dbname'] . ';';       
+    }
+
     public static function createTable(string $name, Callable $callback)
     {
+        $sql = self::useTableSql();
         $table = new Table($name);
         $callback($table);
-        $sql = $table->generateSql(Table::CREATE_MODE);
+        $sql .= $table->generateSql(Table::CREATE_MODE);
         $dbManipulator = self::getDbManipulator();
         return $dbManipulator->exec($sql);        
     }
@@ -29,14 +36,16 @@ class Schema
 
     public static function alterTable(Table $table)    
     {
-        $sql = $table->generateSql(Table::ALTER_MODE);
+        $sql = self::useTableSql();
+        $sql .= $table->generateSql(Table::ALTER_MODE);
         $dbManipulator = self::getDbManipulator();
         return $dbManipulator->exec($sql); 
     }
 
     public static function dropTableIfExists(string $name)    
     {
-        $sql = 'DROP TABLE IF EXISTS ' . $name;
+        $sql = self::useTableSql();
+        $sql .= 'DROP TABLE IF EXISTS ' . $name;
         $dbManipulator = self::getDbManipulator();
         return $dbManipulator->exec($sql); 
     }

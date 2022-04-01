@@ -182,12 +182,16 @@ abstract class Table
         return $sql;
     }
 
-    private function getCreateTableSql(string $mode)
+    private function getCreateTableSql(string $mode):string
     {
         $sql = 'CREATE TABLE ' . $this->name . ' ( ';
+        $pkColumns = [];
         foreach ($this->columns as $column) {
             $column->mode($mode);
             $columnSql[] = $column->compile();
+            if($column->isPk) {
+                $pkColumns[] = $column->name;
+            }
         }
 
         $sql .= implode(',', $columnSql);
@@ -197,25 +201,31 @@ abstract class Table
             $foreignSql[] = $foreignKey->compile();
         }
 
-        $sql .= implode(',', $foreignSql);
+        $sql .= ',' . implode(',', $foreignSql);
 
         foreach ($this->indexes as $index) {
             $index->mode($mode);
             $indexSql[] = $index->compile();
         }
 
-        $sql .= implode(',', $indexSql);
+        $sql .= ',' . implode(',', $indexSql);
 
-        if(isset($this->primaryKey)) {
-            $sql .= $this->primaryKey->compile();
+        if(isset($this->primaryKey) || !empty($pkColumns)) {
+            $sql .= ',' .  $this->compilePk($pkColumns); 
         }
 
-        $sql .= ' )';    
+        $sql .= ' );';    
         
         return $sql;
     }
 
-    private function getAlterTableSql(string $mode)
+    /**
+     * @param array<string> $pkColumns
+     * @return string
+     */
+    abstract protected function compilePk(array $pkColumns):string;
+
+    private function getAlterTableSql(string $mode):string
     {
         $sql = '';
         $baseSql = 'ALTER TABLE ' . $this->name . ' ';

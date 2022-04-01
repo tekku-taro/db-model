@@ -15,6 +15,8 @@ abstract class Column
 
     protected $default;
 
+    public $typeName;
+
     public $type;
 
     /** @var bool */
@@ -32,7 +34,7 @@ abstract class Column
     public const DROP_ACTION = 'DROP';    
 
     /** @var bool */
-    protected $isPk;
+    public $isPk;
 
     /** @var bool */
     protected $isUk;
@@ -54,6 +56,7 @@ abstract class Column
     {
         $this->action = $action;
         $this->name = $name;
+        $this->typeName = $type;
         $this->type($type);
     }
 
@@ -70,17 +73,7 @@ abstract class Column
         return $this;
     }    
 
-    public function type(string $typeName):self
-    {
-        if(ColumnTypeMap::includes($typeName)) {
-            $this->type = ColumnTypeMap::getDBType($typeName);
-        }elseif(ColumnTypeMap::isType($typeName)) {
-            $this->type = $typeName;
-        } else {
-            throw new NotFoundException('利用できるカラムのデータ型に' . $typeName . 'というタイプはありません。');
-        }
-        return $this;
-    }
+    abstract public function type(string $typeName):self;
 
     public function unsigned():self
     {
@@ -89,15 +82,7 @@ abstract class Column
     }
 
 
-    public function length(int $number):self
-    {
-        if(ColumnTypeMap::checkHasLength($this->type)) {
-            $this->length = $number;
-        } else {
-            throw new NotFoundException('データ型:'.$this->type.'は最大文字数を設定できません。');
-        }
-        return $this;
-    }
+    abstract public function length(int $number):self;
 
     public function nullable(bool $mode = true):self
     {

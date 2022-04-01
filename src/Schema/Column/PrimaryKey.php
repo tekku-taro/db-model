@@ -7,8 +7,6 @@ abstract class PrimaryKey
     /** @var array<string> */
     public $columnNames = [];
 
-    public $name;
-
     /** @var string $mode create/alter/drop  */
     protected $mode;
 
@@ -36,10 +34,9 @@ abstract class PrimaryKey
         return $this;
     }
 
-    public function name(string $name):self  
+    public function addColumns(array $columns)
     {
-        $this->name = $name;
-        return $this;
+        $this->columnNames[] += $columns;
     }
 
     abstract public function compile(): string;

@@ -1,7 +1,9 @@
 <?php
 namespace Taro\DBModel\Schema\MySql\Column;
 
+use Taro\DBModel\Exceptions\NotFoundException;
 use Taro\DBModel\Schema\Column\Column;
+use Taro\DBModel\Schema\MySql\Column\ColumnType\MySqlColumnTypeMap;
 
 class MySqlColumn extends Column
 {
@@ -63,7 +65,7 @@ class MySqlColumn extends Column
             $options[] = 'NOT NULL';
         }
         if(isset($this->default)) {
-            $options[] = 'DEFAULT ' . $this->default;
+            $options[] = 'DEFAULT "' . $this->default . '"';
         }
         if(isset($this->autoIncrement)) {
             $options[] = 'AUTO_INCREMENT';
@@ -77,4 +79,28 @@ class MySqlColumn extends Column
 
         return implode(' ', $options);
     }
+
+
+    public function type(string $typeName):Column
+    {
+        if(MySqlColumnTypeMap::includes($typeName)) {
+            $this->type = MySqlColumnTypeMap::getDBType($typeName);
+        }elseif(MySqlColumnTypeMap::isType($typeName)) {
+            $this->type = $typeName;
+        } else {
+            throw new NotFoundException('利用できるカラムのデータ型に' . $typeName . 'というタイプはありません。');
+        }
+        return $this;
+    }    
+
+
+    public function length(int $number):Column
+    {
+        if(MySqlColumnTypeMap::checkHasLength($this->typeName)) {
+            $this->length = $number;
+        } else {
+            throw new NotFoundException('データ型:'.$this->type.'は最大文字数を設定できません。');
+        }
+        return $this;
+    }    
 }

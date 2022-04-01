@@ -5,19 +5,19 @@ namespace Taro\DBModel\Schema\Column\ColumnType;
 abstract class ColumnTypeMap
 {
     /** @var array<string,string> */
-    private const TYPE_MAP = [];
+    protected const TYPE_MAP = [];
 
     public static function getDBType(string $typeName): string
     {
         if(static::includes($typeName)) {
-            return self::TYPE_MAP[$typeName]['type'];
+            return static::TYPE_MAP[$typeName]['type'];
         }
     }
 
     public static function checkHasLength(string $typeName): string
     {
         if(static::includes($typeName)) {
-            return self::TYPE_MAP[$typeName]['length'];
+            return static::TYPE_MAP[$typeName]['length'];
         }
 
         return false;

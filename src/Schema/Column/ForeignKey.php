@@ -91,7 +91,7 @@ abstract class ForeignKey
 
     public function generateFkName(): string    
     {
-        return 'fk_' . implode("_", $this->columnNames)  . '_' . $this->referencedTable . '_' . $this->referencedColumn;
+        return 'fk_' . implode("_", $this->columnNames)  . '_' . $this->referencedTable . '_' . implode("_", $this->referencedColumns);
     }
 
 }

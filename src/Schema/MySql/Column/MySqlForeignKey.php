@@ -11,7 +11,7 @@ class MySqlForeignKey extends ForeignKey
      * @param string $mode  SET NULL|CASCADE|RESTRICT|NO ACTION
      * @return self
      */
-    public function onDelete(string $mode = 'cascade'):self  
+    public function onDelete(string $mode = 'CASCADE'):ForeignKey  
     {
         if(strtoupper($mode) === 'SET DEFAULT') {
             throw new ErrorException('MySqlでは、SET DEFAULT は使用できません。');
@@ -30,7 +30,7 @@ class MySqlForeignKey extends ForeignKey
                 }
                 break;
             case ForeignKey::DROP_ACTION:
-                $sql = 'DROP FOREIGN KEY ' . $this->fkName;
+                $sql = 'DROP FOREIGN KEY ' . $this->name;
                 break;
         }
         return $sql;
@@ -38,8 +38,14 @@ class MySqlForeignKey extends ForeignKey
 
     protected function generateClause():string
     {
-        return 'FOREIGN KEY ' . $this->fkName . ' ( ' . implode(',', $this->columnNames) . ' ) ' .
-        'REFERENCES ' . $this->referencedTable  . ' ( ' . implode(',', $this->referencedColumns) . ' ) ' .
-        'ON DELETE ' . $this->onDelete . 'ON UPDATE ' . $this->onUpdate;
+        $clause = 'FOREIGN KEY ' . $this->name . ' ( ' . implode(',', $this->columnNames) . ' ) ' .
+        'REFERENCES ' . $this->referencedTable  . ' ( ' . implode(',', $this->referencedColumns) . ' )';
+        if(isset($this->onDelete)) {
+            $clause .=  ' ' . 'ON DELETE ' . $this->onDelete;
+        }
+        if(isset($this->onUpdate)) {
+            $clause .= ' ' . 'ON UPDATE ' . $this->onUpdate;
+        }
+        return $clause;
     }
 }

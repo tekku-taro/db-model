@@ -16,7 +16,7 @@ class MySqlIndex extends Index
                 }
                 break;
             case Index::DROP_ACTION:
-                $sql = 'DROP ' . $this->selectIndexOrUnique() . $this->idxName;
+                $sql = 'DROP ' . $this->selectIndexOrUnique() . $this->name;
                 break;
         }
         return $sql;
@@ -25,7 +25,7 @@ class MySqlIndex extends Index
     
     protected function generateClause():string
     {
-        return $this->selectIndexOrUnique() . $this->idxName . ' ( ' . implode(',', $this->columnNames)  . ' ) ';
+        return $this->selectIndexOrUnique() . $this->name . ' ( ' . implode(',', $this->columnNames)  . ' )';
     }
 
     private function selectIndexOrUnique():string

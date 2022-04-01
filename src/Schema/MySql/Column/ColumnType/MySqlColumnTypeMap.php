@@ -5,8 +5,8 @@ use Taro\DBModel\Schema\Column\ColumnType\ColumnTypeMap;
 
 class MySqlColumnTypeMap extends ColumnTypeMap
 {
-    /** @var array<string,string> */
-    private const TYPE_MAP = [
+    /** @var array<string,array<string,mixed>> */
+    protected const TYPE_MAP = [
         'int' => ['type'=>'INT','length'=> false],
         'integer' => ['type'=>'INT','length'=> false],
         'float' => ['type'=>'FLOAT','length'=> false],
@@ -18,6 +18,7 @@ class MySqlColumnTypeMap extends ColumnTypeMap
         'bool' => ['type'=>'TINYINT','length'=> false],
         'char' => ['type'=>'CHAR','length'=> true],
         'varchar' => ['type'=>'VARCHAR','length'=> true],
+        'string' => ['type'=>'VARCHAR','length'=> true],
         'text' => ['type'=>'TEXT','length'=> false],
         'blob' => ['type'=>'BLOB','length'=> false],
         'date' => ['type'=>'ENUM','length'=> false],

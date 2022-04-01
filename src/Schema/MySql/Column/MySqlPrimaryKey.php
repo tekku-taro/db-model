@@ -24,6 +24,6 @@ class MySqlPrimaryKey extends PrimaryKey
 
     protected function generateClause():string
     {
-        return 'PRIMARY KEY ' . ' ( ' . implode(',', $this->columnNames) . ' ) ';
+        return 'PRIMARY KEY ' . ' ( ' . implode(',', $this->columnNames) . ' )';
     }
 }

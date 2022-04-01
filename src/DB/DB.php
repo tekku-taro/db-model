@@ -67,11 +67,15 @@ class DB
     }
 
     /**
-     * @param string $connName
+     * @param string|null $connName
      * @return array<string,string>
      */
-    public static function getConfig(string $connName):array
+    public static function getConfig(string $connName = null):array
     {
+        if($connName === null) {
+            return self::getGlobalConfig();
+        }
+
         if(isset(self::$configList[$connName])) {
             return self::$configList[$connName];
         }
