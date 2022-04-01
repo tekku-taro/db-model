@@ -7,6 +7,8 @@ use Taro\DBModel\Schema\Column\ColumnType\ColumnTypeMap;
 abstract class Column
 {
     public $name;
+    
+    public $tableName;
 
     protected $length;
 
@@ -52,10 +54,11 @@ abstract class Column
     protected $rename;
 
 
-    function __construct(string $action, string $name, string $type = 'string')
+    function __construct(string $action, string $name, string $type = 'string',string $tableName)
     {
         $this->action = $action;
         $this->name = $name;
+        $this->tableName = $tableName;
         $this->typeName = $type;
         $this->type($type);
     }

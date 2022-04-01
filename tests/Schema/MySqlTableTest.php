@@ -45,8 +45,8 @@ class MySqlTableTest extends TestCase
         'content TEXT,'.
         'status VARCHAR(5) NOT NULL DEFAULT "good",'.
         'user_id INT UNSIGNED NOT NULL,'.
-        'FOREIGN KEY fk_user_id_users_id ( user_id ) REFERENCES users ( id ) ON DELETE CASCADE,'.
-        'UNIQUE idx_content_status ( content,status ),'.
+        'FOREIGN KEY fk_test_user_id_users_id ( user_id ) REFERENCES users ( id ) ON DELETE CASCADE,'.
+        'UNIQUE idx_test_content_status ( content,status ),'.
         'PRIMARY KEY  ( id )'.
         ' );';
 

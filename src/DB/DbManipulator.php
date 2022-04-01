@@ -111,9 +111,7 @@ class DbManipulator
 
     public function exec($sql)
     {
-
         $result = $this->dbh->exec($sql);
-
         if ($result === false) {
             throw new \Exception($this->dbh->errorInfo()[2]);
         }        

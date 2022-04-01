@@ -9,6 +9,8 @@ abstract class Index
     
     public $name;
 
+    public $tableName;
+
     /** @var bool */
     protected $unique;
 
@@ -25,10 +27,11 @@ abstract class Index
     /** @var Index */
     public $original;  
 
-    function __construct(string $action, $columnNames = [])
+    function __construct(string $action, $columnNames = [],string $tableName)
     {
         $this->action = $action;
         $this->columnNames = $columnNames;
+        $this->tableName = $tableName;
         $this->name = $this->generateIdkName();
     }
     
@@ -56,7 +59,7 @@ abstract class Index
 
     protected function generateIdkName(): string    
     {
-        return 'idx_' . implode("_", $this->columnNames);
+        return 'idx_' . $this->tableName  . '_' . implode("_", $this->columnNames);
     }
 
 }

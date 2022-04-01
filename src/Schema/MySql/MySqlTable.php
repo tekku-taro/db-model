@@ -15,7 +15,7 @@ class MySqlTable extends Table
 {
     public function addColumn(string $name, string $columnType):Column
     {
-        $column = new MySqlColumn(Column::ADD_ACTION, $name, $columnType);
+        $column = new MySqlColumn(Column::ADD_ACTION, $name, $columnType, $this->name);
         $this->columns[] = $column;
         return $column;
     }
@@ -35,7 +35,7 @@ class MySqlTable extends Table
     private function fetchOriginalColumn(string $name, string $action):Column 
     {
         $original = $this->original->getColumn($name);
-        $column = new MySqlColumn($action, $name, $original->type);
+        $column = new MySqlColumn($action, $name, $original->type, $this->name);
         $column->original = $original;
         $this->columns[] = $column;
         return $column;
@@ -43,14 +43,14 @@ class MySqlTable extends Table
 
     public function addForeign(...$columns):ForeignKey
     {
-        $foreignKey = new MySqlForeignKey(ForeignKey::ADD_ACTION, $columns);
+        $foreignKey = new MySqlForeignKey(ForeignKey::ADD_ACTION, $columns, $this->name);
         $this->foreignKeys[] = $foreignKey;
         return $foreignKey;
     }
 
     public function addIndex(...$columns):Index
     {
-        $index = new MySqlIndex(Index::ADD_ACTION, $columns);
+        $index = new MySqlIndex(Index::ADD_ACTION, $columns, $this->name);
         $this->indexes[] = $index;
         return $index;
     }
@@ -69,7 +69,7 @@ class MySqlTable extends Table
 
     private function fetchOriginalForeign(ForeignKey $original, string $action):ForeignKey
     {
-        $foreignKey = new MySqlForeignKey($action, $original->columnNames);
+        $foreignKey = new MySqlForeignKey($action, $original->columnNames, $this->name);
         $foreignKey->original = $original;
         $this->foreignKeys[] = $foreignKey;
         return $foreignKey;
@@ -91,7 +91,7 @@ class MySqlTable extends Table
 
     private function fetchOriginalIndex(Index $original, string $action):Index
     {
-        $index = new MySqlIndex($action, $original->columnNames);
+        $index = new MySqlIndex($action, $original->columnNames, $this->name);
         $index->original = $original;
         $this->indexes[] = $index;
         return $index;
@@ -115,7 +115,7 @@ class MySqlTable extends Table
 
     public function addUnique(...$columns)    
     {
-        $index = new MySqlIndex(Index::ADD_ACTION, $columns);
+        $index = new MySqlIndex(Index::ADD_ACTION, $columns, $this->name);
         $index->unique(true);
         $this->indexes[] = $index;
     }

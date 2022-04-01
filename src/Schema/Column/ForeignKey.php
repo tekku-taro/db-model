@@ -15,6 +15,8 @@ abstract class ForeignKey
 
     protected $referencedTable;
 
+    public $tableName;
+
     /** @var array<string> */    
     protected $referencedColumns = [];
 
@@ -34,10 +36,11 @@ abstract class ForeignKey
     public $original;  
 
 
-    function __construct(string $action, $columnNames = [])
+    function __construct(string $action, $columnNames = [],string $tableName)
     {
         $this->action = $action;
         $this->columnNames = $columnNames;
+        $this->tableName = $tableName;
     }
     
     public function mode(string $mode):self
@@ -91,7 +94,7 @@ abstract class ForeignKey
 
     public function generateFkName(): string    
     {
-        return 'fk_' . implode("_", $this->columnNames)  . '_' . $this->referencedTable . '_' . implode("_", $this->referencedColumns);
+        return 'fk_' . $this->tableName . '_' . implode("_", $this->columnNames)  . '_' . $this->referencedTable . '_' . implode("_", $this->referencedColumns);
     }
 
 }

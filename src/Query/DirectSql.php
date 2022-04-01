@@ -38,7 +38,7 @@ class DirectSql extends BaseBuilder
     {
         $statement = $this->query->executeWithoutCompile();
 
-        if($this->isSelectQuery()) {
+        if($this->isFetchQuery()) {
             $result = $statement->fetchAll();
         } else {
             $result = true;
@@ -51,9 +51,12 @@ class DirectSql extends BaseBuilder
         return $result;
     }
 
-    protected function isSelectQuery()
+    protected function isFetchQuery()
     {
         if(preg_match('/^select /i', trim($this->query->getCompiled()))) {
+            return true;
+        }
+        if(preg_match('/^show /i', trim($this->query->getCompiled()))) {
             return true;
         }
         return false;

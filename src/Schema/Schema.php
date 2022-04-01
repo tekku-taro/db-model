@@ -11,19 +11,26 @@ class Schema
 {
     private static $connName;
 
-    private static function useTableSql():string
+    private static function useTable(DbManipulator $dbManipulator):void
     {
         $config = DB::getConfig(self::$connName);      
-        return 'use ' . $config['dbname'] . ';';       
+        $dbManipulator->exec('USE ' . $config['dbname'] . ';');       
     }
 
     public static function createTable(string $name, Callable $callback)
-    {
-        $sql = self::useTableSql();
-        $table = new Table($name);
-        $callback($table);
-        $sql .= $table->generateSql(Table::CREATE_MODE);
+    {        
         $dbManipulator = self::getDbManipulator();
+        self::useTable($dbManipulator);
+        $config = DB::getConfig(self::$connName);
+        $driver = new DbDriver($config['driver'],$config['dbname']);
+        switch ($driver->type) {
+            case DbDriver::MY_SQL:
+                $table = new MySqlTable($name);
+                break;
+        }
+        $callback($table);
+        $sql = $table->generateSql(Table::CREATE_MODE);
+        
         return $dbManipulator->exec($sql);        
     }
 
@@ -36,17 +43,17 @@ class Schema
 
     public static function alterTable(Table $table)    
     {
-        $sql = self::useTableSql();
-        $sql .= $table->generateSql(Table::ALTER_MODE);
         $dbManipulator = self::getDbManipulator();
+        self::useTable($dbManipulator);
+        $sql = $table->generateSql(Table::ALTER_MODE);
         return $dbManipulator->exec($sql); 
     }
 
     public static function dropTableIfExists(string $name)    
     {
-        $sql = self::useTableSql();
-        $sql .= 'DROP TABLE IF EXISTS ' . $name;
         $dbManipulator = self::getDbManipulator();
+        self::useTable($dbManipulator);
+        $sql = 'DROP TABLE IF EXISTS ' . $name;
         return $dbManipulator->exec($sql); 
     }
 
