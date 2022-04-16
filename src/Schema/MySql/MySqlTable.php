@@ -41,9 +41,9 @@ class MySqlTable extends Table
         return $column;
     }
 
-    public function addForeign(...$columns):ForeignKey
+    public function addForeign(string $column):ForeignKey
     {
-        $foreignKey = new MySqlForeignKey(ForeignKey::ADD_ACTION, $columns, $this->name);
+        $foreignKey = new MySqlForeignKey(ForeignKey::ADD_ACTION, $column, $this->name);
         $this->foreignKeys[] = $foreignKey;
         return $foreignKey;
     }

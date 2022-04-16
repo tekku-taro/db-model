@@ -42,7 +42,7 @@ abstract class Column
     protected $isUk;
 
     /** @var bool */
-    protected $autoIncrement;
+    public $autoIncrement;
 
     protected $after;
 

@@ -1,6 +1,7 @@
 <?php
 namespace Taro\DBModel\Schema\Column\ColumnType;
 
+use Taro\DBModel\Exceptions\NotFoundException;
 
 abstract class ColumnTypeMap
 {
@@ -12,6 +13,16 @@ abstract class ColumnTypeMap
         if(static::includes($typeName)) {
             return static::TYPE_MAP[$typeName]['type'];
         }
+    }
+
+    public static function getTypeName(string $dbType): string
+    {
+        $dbType = strtoupper($dbType);
+        $typeName = array_search( $dbType, array_column( static::TYPE_MAP, 'type'));
+        if($typeName === false) {
+            throw new NotFoundException($dbType . ' データタイプは登録されていません');
+        }
+        return $typeName;
     }
 
     public static function checkHasLength(string $typeName): string

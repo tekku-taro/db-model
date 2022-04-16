@@ -4,8 +4,8 @@ namespace Taro\DBModel\Schema\Column;
 
 abstract class ForeignKey
 {
-    /** @var array<string> */
-    public $columnNames = [];
+    /** @var string */
+    public $columnName;
 
     public $name;
 
@@ -17,8 +17,8 @@ abstract class ForeignKey
 
     public $tableName;
 
-    /** @var array<string> */    
-    protected $referencedColumns = [];
+    /** @var string */    
+    protected $referencedColumn;
 
 
     /** @var string $mode create/alter/drop  */
@@ -36,10 +36,10 @@ abstract class ForeignKey
     public $original;  
 
 
-    function __construct(string $action, $columnNames = [],string $tableName)
+    function __construct(string $action,string $columnName, string $tableName)
     {
         $this->action = $action;
-        $this->columnNames = $columnNames;
+        $this->columnName = $columnName;
         $this->tableName = $tableName;
     }
     
@@ -52,13 +52,13 @@ abstract class ForeignKey
 
     /**
      * @param string $table
-     * @param array<string> $columns
+     * @param string $column
      * @return self
      */
-    public function references(string $table,array $columns):self
+    public function references(string $table,string $column):self
     {
         $this->referencedTable = $table;
-        $this->referencedColumns = $columns;
+        $this->referencedColumn = $column;
         $this->name = $this->generateFkName();
         return $this;
     }
@@ -94,7 +94,7 @@ abstract class ForeignKey
 
     public function generateFkName(): string    
     {
-        return 'fk_' . $this->tableName . '_' . implode("_", $this->columnNames)  . '_' . $this->referencedTable . '_' . implode("_", $this->referencedColumns);
+        return 'fk_' . $this->tableName . '_' . $this->columnName . '_' . $this->referencedTable . '_' . $this->referencedColumn;
     }
 
 }

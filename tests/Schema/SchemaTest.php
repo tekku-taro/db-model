@@ -50,7 +50,7 @@ class SchemaTest extends TestCase
             $table->addColumn('user_id','int')->unsigned();
             
             $table->addUnique('content', 'status');
-            $table->addForeign('user_id')->references('users', ['id'])->onDelete('CASCADE');
+            $table->addForeign('user_id')->references('users', 'id')->onDelete('CASCADE');
         });
 
         $sql = $this->showTable('test2');

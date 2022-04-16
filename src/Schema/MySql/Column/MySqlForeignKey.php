@@ -38,8 +38,8 @@ class MySqlForeignKey extends ForeignKey
 
     protected function generateClause():string
     {
-        $clause = 'FOREIGN KEY ' . $this->name . ' ( ' . implode(',', $this->columnNames) . ' ) ' .
-        'REFERENCES ' . $this->referencedTable  . ' ( ' . implode(',', $this->referencedColumns) . ' )';
+        $clause = 'FOREIGN KEY ' . $this->name . ' ( ' . $this->columnName . ' ) ' .
+        'REFERENCES ' . $this->referencedTable  . ' ( ' . $this->referencedColumn . ' )';
         if(isset($this->onDelete)) {
             $clause .=  ' ' . 'ON DELETE ' . $this->onDelete;
         }

@@ -59,7 +59,7 @@ abstract class Table
 
     abstract public function dropColumn(string $name);
 
-    abstract public function addForeign(...$columns);
+    abstract public function addForeign(string $column);
 
     abstract public function addIndex(...$columns);
 
@@ -249,5 +249,24 @@ abstract class Table
         }
        
         return $sql;
+    }
+
+    public function hydrate(array $data)
+    {
+        if(!empty($data['columns'])) {
+            $this->columns = $data['columns'];
+        }
+        if(!empty($data['primaryKey'])) {
+            $this->primaryKey = $data['primaryKey'];
+        }
+        if(!empty($data['foreignKeys'])) {
+            $this->foreignKeys = $data['foreignKeys'];
+        }
+        if(!empty($data['indexes'])) {
+            $this->indexes = $data['indexes'];
+        }
+        if(!empty($data['encoding'])) {
+            $this->encoding = $data['encoding'];
+        }
     }
 }

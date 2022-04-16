@@ -3,8 +3,7 @@ namespace Taro\DBModel\Schema;
 
 use Taro\DBModel\DB\DB;
 use Taro\DBModel\DB\DbManipulator;
-use Taro\DBModel\Schema\MySql\MySqlTable;
-use Taro\DBModel\Schema\MySql\MySqlTableFetcher;
+use Taro\DBModel\Schema\TableLoading\TableFetcher;
 use Taro\DBModel\Schema\TableLoading\TableLoader;
 
 class Schema
@@ -23,11 +22,7 @@ class Schema
         self::useTable($dbManipulator);
         $config = DB::getConfig(self::$connName);
         $driver = new DbDriver($config['driver'],$config['dbname']);
-        switch ($driver->type) {
-            case DbDriver::MY_SQL:
-                $table = new MySqlTable($name);
-                break;
-        }
+        $table = SchemaFactory::newTable($name, $driver);
         $callback($table);
         $sql = $table->generateSql(Table::CREATE_MODE);
         
@@ -59,17 +54,15 @@ class Schema
 
     private static function loadTableInfo(string $name, DbDriver $driver)    
     {
-        switch ($driver->type) {
-            case DbDriver::MY_SQL:
-                /** @var array<TableColumnInfo> $tableData */
-                $tableData = MySqlTableFetcher::fetchInfo($name, $driver, self::getDbManipulator());
+        /** @var TableFetcher $fetcher */
+        $fetcher = TableFetcher::fetchInfo($name, $driver, self::getDbManipulator());
 
-                $table = new MySqlTable($name);
-                $table = TableLoader::load($table, $tableData);
-                return self::setOriginal($table);
-                break;
-        }
+        $loader = new TableLoader($name, $driver, $fetcher);
+        $table = $loader->load();
+        return self::setOriginal($table);
+
     }
+
 
     private function setOriginal(Table $originalTable)
     {
