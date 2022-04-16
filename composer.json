@@ -3,14 +3,17 @@
     "description": "php-ormapperの改良バージョン。",
     "type": "library",
     "require": {
+        "vlucas/phpdotenv": "^5.4"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5"        
     },
     "autoload": {
         "psr-4": {
-            "Taro\\DBModel\\":"./src"
-        }
+            "Taro\\DBModel\\":"./src",
+            "Taro\\Tests\\":"./tests"
+        },
+        "files": ["./src/Utilities/functions.php"]
     },
     "license": "MIT",
     "authors": [
