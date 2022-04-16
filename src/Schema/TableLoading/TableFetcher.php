@@ -7,7 +7,9 @@ use Taro\DBModel\Schema\MySql\MySqlTableFetcher;
 
 abstract class TableFetcher
 {
-    protected $name;
+    public $name;
+
+    public $encoding;
 
     /** @var DbDriver */
     protected $driver;
@@ -17,10 +19,14 @@ abstract class TableFetcher
 
     protected static $connName;
 
-    public $rawData;
-
     /** @var array<TableColumnInfo> */
-    public $tableData;
+    public $tableColumns;
+    /** @var array<TablePrimaryKeyInfo> */
+    public $tablePrimaryKey;
+    /** @var array<TableForeignKeyInfo> */
+    public $tableForeignKeys;
+    /** @var array<TableIndexInfo> */
+    public $tableIndexes;
 
     function __construct(string $name, DbDriver $driver, DbManipulator $dbManipulator)
     {
@@ -29,7 +35,7 @@ abstract class TableFetcher
         $this->dbManipulator = $dbManipulator;
     }
 
-    public static function fetchInfo(string $name, DbDriver $driver, DbManipulator $dbManipulator)
+    public static function fetchInfo(string $name, DbDriver $driver, DbManipulator $dbManipulator):self
     {
         switch ($driver->type) {
             case DbDriver::MY_SQL:
@@ -37,15 +43,99 @@ abstract class TableFetcher
                 break;
         }
         
-        $sql = $fetcher->getSchemaInfoSql();
-        $fetcher->execAndGetTableInfo($sql);
-        return $fetcher->handleInfo();
+        $fetcher->setTableColumns();
+        $fetcher->setTablePrimaryKey();
+        $fetcher->setTableForeignKeys();
+        $fetcher->setTableIndexes();
+        $fetcher->setEncoding();
+        return $fetcher;
     }
 
-    public abstract function getSchemaInfoSql():string;
+    public function setEncoding()
+    {
+        $sql = $this->getTableEncodingSql();
+        $result = $this->execAndGetTableInfo($sql);
+        $this->encoding = $result[0]['character_set_name'];
+    }
 
-    public abstract function execAndGetTableInfo(string $sql);
+    public function setTableColumns()
+    {
+        $sql = $this->getTableColumnsSql();
+        $result = $this->execAndGetTableInfo($sql);
+        $this->hydrateColumnInfo($result);
+    }
 
-    public abstract function handleInfo():array;
+    public function setTablePrimaryKey()
+    {
+        $sql = $this->getTablePrimaryKeySql();
+        $result = $this->execAndGetTableInfo($sql);
+        $this->hydratePrimaryKeyInfo($result);
+    }
+
+    public function setTableForeignKeys()
+    {
+        $sql = $this->getTableForiegnKeySql();
+        $result = $this->execAndGetTableInfo($sql);
+        $this->hydrateForeignKeysInfo($result);
+    }
+
+    public function setTableIndexes()
+    {
+        $sql = $this->getTableIndexesSql();
+        $result = $this->execAndGetTableInfo($sql);
+        $this->hydrateIndexesInfo($result);
+    }
+
+
+    /**
+     * @param string $sql
+     * @return array<array<string>>
+     */
+    public function execAndGetTableInfo(string $sql):array
+    {
+        $statement = $this->dbManipulator->executeAndStatement($sql); 
+        $results = $statement->fetchAll();
+        $statement = null;
+        if($results === false) {
+            return [];
+        }
+        return $results;        
+    }
+
+    /**
+     * @param array<string> $resultSet
+     * @return void
+     */
+    public abstract function hydrateColumnInfo(array $resultSet):void;
+
+    /**
+     * @param array<string> $resultSet
+     * @return void
+     */
+    public abstract function hydratePrimaryKeyInfo(array $resultSet):void;
+    
+    /**
+     * @param array<string> $resultSet
+     * @return void
+     */
+    public abstract function hydrateForeignKeysInfo(array $resultSet):void;
+    
+    /**
+     * @param array<string> $resultSet
+     * @return void
+     */
+    public abstract function hydrateIndexesInfo(array $resultSet):void;
+
+
+
+    public abstract function getTableColumnsSql():string;
+
+    public abstract function getTableIndexesSql():string;
+
+    public abstract function getTablePrimaryKeySql():string;
+
+    public abstract function getTableEncodingSql():string;
+    
+    public abstract function getTableForiegnKeySql():string;
 
 }
