@@ -15,7 +15,7 @@ class MySqlTableFetcher extends TableFetcher
         return 'SELECT *
         FROM INFORMATION_SCHEMA.COLUMNS
         WHERE TABLE_NAME = "'.$this->name.'"
-        and TABLE_SCHEMA = "'.$this->driver->dbName.'"
+        AND TABLE_SCHEMA = "'.$this->driver->dbName.'"
         ;';
     }
 
@@ -24,7 +24,7 @@ class MySqlTableFetcher extends TableFetcher
         return 'SELECT * 
         FROM INFORMATION_SCHEMA.STATISTICS 
         WHERE TABLE_NAME = "'.$this->name.'"
-        and TABLE_SCHEMA = "'.$this->driver->dbName.'"
+        AND TABLE_SCHEMA = "'.$this->driver->dbName.'"
         ;';
     }
 
@@ -35,8 +35,8 @@ class MySqlTableFetcher extends TableFetcher
         JOIN information_schema.key_column_usage k
         USING(CONSTRAINT_NAME,TABLE_SCHEMA,TABLE_NAME)
         WHERE t.CONSTRAINT_TYPE="PRIMARY KEY"
-        WHERE t.TABLE_NAME = "'.$this->name.'"
-        and t.TABLE_SCHEMA = "'.$this->driver->dbName.'"
+        AND t.TABLE_NAME = "'.$this->name.'"
+        AND t.TABLE_SCHEMA = "'.$this->driver->dbName.'"
         ;';
     }
 
@@ -46,8 +46,8 @@ class MySqlTableFetcher extends TableFetcher
         FROM information_schema.`TABLES` T,
         information_schema.`COLLATION_CHARACTER_SET_APPLICABILITY` CCSA
         WHERE CCSA.collation_name = T.table_collation
-        and T.TABLE_NAME = "'.$this->name.'"
-        and T.TABLE_SCHEMA = "'.$this->driver->dbName.'"
+        AND T.TABLE_NAME = "'.$this->name.'"
+        AND T.TABLE_SCHEMA = "'.$this->driver->dbName.'"
         ;';
     }
 
@@ -57,8 +57,8 @@ class MySqlTableFetcher extends TableFetcher
         FROM information_schema.TABLE_CONSTRAINTS i 
         LEFT JOIN information_schema.KEY_COLUMN_USAGE k ON i.CONSTRAINT_NAME = k.CONSTRAINT_NAME 
         WHERE i.CONSTRAINT_TYPE = "FOREIGN KEY" 
-        WHERE i.TABLE_NAME = "'.$this->name.'"
-        and i.TABLE_SCHEMA = "'.$this->driver->dbName.'"
+        AND i.TABLE_NAME = "'.$this->name.'"
+        AND i.TABLE_SCHEMA = "'.$this->driver->dbName.'"
         ;';
     }
 
@@ -76,15 +76,25 @@ class MySqlTableFetcher extends TableFetcher
             $tableColumnInfo->tableName = $row['TABLE_NAME'];
             $tableColumnInfo->name = $row['COLUMN_NAME'];
             $tableColumnInfo->dataType = $row['DATA_TYPE'];
+            $tableColumnInfo->unsigned = $this->checkIfExists($row['COLUMN_TYPE'], 'unsigned');
+            $tableColumnInfo->numericPrecision = $row['NUMERIC_PRECISION'];
             $tableColumnInfo->maxLength = $row['CHARACTER_MAXIMUM_LENGTH'];
             $tableColumnInfo->isNullable = ($row['IS_NULLABLE'] === 'YES')? true:false;
-            $tableColumnInfo->default = $row['COLUMN_DEFAULT'];
+            $tableColumnInfo->default = $this->getDefaultVal($row['COLUMN_DEFAULT']);
             $tableColumnInfo->autoIncrement = $this->checkIfExists($row['EXTRA'], 'auto_increment');
             $data[] = $tableColumnInfo;
         }
 
         $this->tableColumns = $data;
     }   
+
+    private function getDefaultVal($rawValue)
+    {
+        if($rawValue === 'NULL' || $rawValue === null) {
+            return null;
+        }
+        return str_replace('\'','',$rawValue);
+    }
 
     /**
      * @param array<string> $resultSet
@@ -134,8 +144,11 @@ class MySqlTableFetcher extends TableFetcher
     public function hydrateIndexesInfo(array $resultSet):void
     {
         $data = [];
+        $foreignKeyNames = array_map(function(TableForeignKeyInfo $foreignKeyInfo){
+            return $foreignKeyInfo->name;
+        }, $this->tableForeignKeys);
         foreach ($resultSet as $row) {
-            if($row['INDEX_NAME'] !== 'PRIMARY') {
+            if($row['INDEX_NAME'] === 'PRIMARY' || in_array($row['INDEX_NAME'], $foreignKeyNames)) {
                 continue;
             }
             $tableInfo = new TableIndexInfo;

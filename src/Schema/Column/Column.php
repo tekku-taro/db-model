@@ -12,6 +12,8 @@ abstract class Column
 
     protected $length;
 
+    protected $precision;
+
     /** @var bool */
     protected $nullable;
 

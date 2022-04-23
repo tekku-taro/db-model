@@ -7,6 +7,8 @@ class TableColumnInfo
     public $tableName;
     public $name;
     public $dataType;
+    public $unsigned;
+    public $numericPrecision;
     public $maxLength;
 
     /** @var bool */

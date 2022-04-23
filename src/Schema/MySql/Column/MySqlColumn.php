@@ -50,7 +50,10 @@ class MySqlColumn extends Column
         $block = $this->type;
         if(isset($this->length)) {
             $block .= '(' . $this->length . ')';
+        }elseif(isset($this->precision)) {
+            $block .= '(' . $this->precision . ')';
         }
+
 
         return $block;
     }
@@ -101,6 +104,12 @@ class MySqlColumn extends Column
         } else {
             throw new NotFoundException('データ型:'.$this->type.'は最大文字数を設定できません。');
         }
+        return $this;
+    }    
+
+    public function precision(int $number):Column
+    {
+        $this->precision = $number;
         return $this;
     }    
 }

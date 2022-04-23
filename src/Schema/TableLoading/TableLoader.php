@@ -1,8 +1,10 @@
 <?php
 namespace Taro\DBModel\Schema\TableLoading;
 
+use Taro\DBModel\Schema\Column\ColumnType\ColumnTypeMap;
 use Taro\DBModel\Schema\Column\PrimaryKey;
 use Taro\DBModel\Schema\DbDriver;
+use Taro\DBModel\Schema\MySql\Column\ColumnType\MySqlColumnTypeMap;
 use Taro\DBModel\Schema\SchemaFactory;
 use Taro\DBModel\Schema\Table;
 use Taro\DBModel\Utilities\DataManager\ObjectList;
@@ -54,15 +56,31 @@ class TableLoader
     private function readColumns()
     {
         foreach ($this->fetcher->tableColumns as $columnInfo) {
-            $column = SchemaFactory::newColumn($this->driver, $columnInfo->name, $columnInfo->dbType, $columnInfo->tableName);
+            $column = SchemaFactory::newColumn($this->driver, $columnInfo->name, $columnInfo->dataType, $columnInfo->tableName);
             $column->nullable($columnInfo->isNullable)->default($columnInfo->default);
-            $column->autoIncrement = $columnInfo->autoIncrement;
-            if($columnInfo->maxLength !== null) {
+            if($columnInfo->autoIncrement) {
+                $column->autoIncrement = true;
+            }
+            if($columnInfo->unsigned) {
+                $column->unsigned();
+            }
+            if($columnInfo->maxLength !== null && $this->checkColumnLength($column->typeName)) {
                 $column->length($columnInfo->maxLength);
+            }
+            if($columnInfo->numericPrecision !== null) {
+                $column->precision($columnInfo->numericPrecision);
             }
 
             $this->columns[] = $column;
         }
+    }
+
+    private function checkColumnLength(string $typeName)
+    {
+        switch ($this->driver->type) {
+            case DbDriver::MY_SQL:
+                return MySqlColumnTypeMap::checkHasLength($typeName);
+        }          
     }
 
     private function readName()    

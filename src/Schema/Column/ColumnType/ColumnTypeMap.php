@@ -18,7 +18,18 @@ abstract class ColumnTypeMap
     public static function getTypeName(string $dbType): string
     {
         $dbType = strtoupper($dbType);
-        $typeName = array_search( $dbType, array_column( static::TYPE_MAP, 'type'));
+        $typeName = array_search(
+            $dbType,
+            array_filter(
+                array_combine(
+                    array_keys(static::TYPE_MAP),
+                    array_column(
+                        static::TYPE_MAP, 'type'
+                    )
+                )
+            )
+        );
+
         if($typeName === false) {
             throw new NotFoundException($dbType . ' データタイプは登録されていません');
         }
