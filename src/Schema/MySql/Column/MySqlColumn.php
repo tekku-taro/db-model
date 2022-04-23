@@ -95,6 +95,8 @@ class MySqlColumn extends Column
         } else {
             throw new NotFoundException('利用できるカラムのデータ型に' . $typeName . 'というタイプはありません。');
         }
+
+        $this->setDefaultLength();
         return $this;
     }    
 
@@ -108,6 +110,13 @@ class MySqlColumn extends Column
         }
         return $this;
     }    
+
+    protected function setDefaultLength()
+    {
+        if(MySqlColumnTypeMap::checkHasLength($this->typeName)) {
+            $this->length = MySqlColumnTypeMap::DEFAULT_CHAR_LENGTH;
+        }
+    }
 
     public function precision(int $number):Column
     {

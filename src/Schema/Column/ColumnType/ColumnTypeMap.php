@@ -8,6 +8,8 @@ abstract class ColumnTypeMap
     /** @var array<string,string> */
     protected const TYPE_MAP = [];
 
+    public const DEFAULT_CHAR_LENGTH = 255;
+
     public static function getDBType(string $typeName): string
     {
         if(static::includes($typeName)) {

@@ -31,7 +31,7 @@ class MySqlTableTest extends TestCase
         $table = new MySqlTable('test');
         $table->addColumn('id','int')->unsigned()->primary();
         $table->addColumn('content','text')->nullable();
-        $table->addColumn('status','string')->length(5)->default('good');
+        $table->addColumn('status','string')->default('good');
         $table->addColumn('user_id','int')->unsigned();
         
         $table->addUnique('content', 'status');
@@ -40,15 +40,7 @@ class MySqlTableTest extends TestCase
         $sql = $table->generateSql(Table::CREATE_MODE);
         var_export($sql);
         
-        $expected = 'CREATE TABLE test ('.
-        ' id INT UNSIGNED NOT NULL,'.
-        'content TEXT,'.
-        'status VARCHAR(5) NOT NULL DEFAULT "good",'.
-        'user_id INT UNSIGNED NOT NULL,'.
-        'FOREIGN KEY fk_test_user_id_users_id ( user_id ) REFERENCES users ( id ) ON DELETE CASCADE,'.
-        'UNIQUE idx_test_content_status ( content,status ),'.
-        'PRIMARY KEY  ( id )'.
-        ' );';
+        $expected = 'CREATE TABLE test ( id INT UNSIGNED NOT NULL,content TEXT,status VARCHAR(255) NOT NULL DEFAULT "good",user_id INT UNSIGNED NOT NULL,FOREIGN KEY fk_test_user_id_users_id ( user_id ) REFERENCES users ( id ) ON DELETE CASCADE,UNIQUE idx_test_content_status ( content,status ),PRIMARY KEY  ( id ) );';
 
         $this->assertEquals($expected, $sql);
     }
