@@ -69,10 +69,7 @@ class SchemaTest extends TestCase
         $this->assertEquals(self::trimLineBreaks($expected), self::trimLineBreaks($sql));
     }
 
-    private static function trimLineBreaks(string $string)
-    {
-        return preg_replace( "/\r|\n/", "", $string );
-    }
+
 
 
     /**
@@ -86,6 +83,33 @@ class SchemaTest extends TestCase
 
         $this->assertEquals('test2', $table->name); 
     }
+
+
+    /**
+     * @return void
+     */
+    public function testAlterTable()
+    {
+        $table = Schema::getTable('test2');
+
+        $table->addColumn('post_id','int');        
+        $table->changeColumn('status')->default(0);
+        $table->addForeign('post_id')->references('posts','id')->onDelete('cascade')->name('FK1');
+        $table->dropForeign('fk_test2_user_id_users_id');
+        $table->dropIndexByColumns('content','status');
+        $table->addIndex('status')->name('INDEX1');        
+        $table->dropColumn('content');
+
+        Schema::alterTable($table);
+          
+
+        $sql = $this->showTable('test2');
+        var_export($sql);
+        $expected = "CREATE TABLE `test2` (  `id` int(10) unsigned NOT NULL,  `status` varchar(5) NOT NULL DEFAULT '0',  `user_id` int(10) unsigned NOT NULL,  `post_id` int(11) NOT NULL,  PRIMARY KEY (`id`),  KEY `FK1` (`post_id`),  KEY `INDEX1` (`status`),  CONSTRAINT `FK1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+        $this->assertEquals(self::trimLineBreaks($expected), self::trimLineBreaks($sql));
+    }
+
 
     /**
      * @return void
@@ -116,4 +140,9 @@ class SchemaTest extends TestCase
     }
 
 
+    
+    private static function trimLineBreaks(string $string)
+    {
+        return preg_replace( "/\r|\n/", "", $string );
+    }
 }

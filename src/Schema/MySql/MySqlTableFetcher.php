@@ -153,11 +153,9 @@ class MySqlTableFetcher extends TableFetcher
     public function hydrateIndexesInfo(array $resultSet):void
     {
         $data = [];
-        $foreignKeyNames = array_map(function(TableForeignKeyInfo $foreignKeyInfo){
-            return $foreignKeyInfo->name;
-        }, $this->tableForeignKeys);
+
         foreach ($resultSet as $row) {
-            if($row['INDEX_NAME'] === 'PRIMARY' || in_array($row['INDEX_NAME'], $foreignKeyNames)) {
+            if($row['INDEX_NAME'] === 'PRIMARY') {
                 continue;
             }
             $tableInfo = new TableIndexInfo;

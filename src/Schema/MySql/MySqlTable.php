@@ -64,13 +64,15 @@ class MySqlTable extends Table
     public function dropForeign(string $name)    
     {
         $original = $this->original->getForeign($name);
-        $this->fetchOriginalForeign($original, ForeignKey::DROP_ACTION);
+        $foreignKey = $this->fetchOriginalForeign($original, ForeignKey::DROP_ACTION);
+        $this->dropIndex($foreignKey->name);
     }
 
     public function dropForeignKeyByColumn(string $column)    
     {
         $original = $this->original->getForeignByColumn($column);
-        $this->fetchOriginalForeign($original, ForeignKey::DROP_ACTION);
+        $foreignKey = $this->fetchOriginalForeign($original, ForeignKey::DROP_ACTION);
+        $this->dropIndex($foreignKey->name);
     }
 
     private function fetchOriginalForeign(ForeignKey $original, string $action):ForeignKey
@@ -99,6 +101,7 @@ class MySqlTable extends Table
     private function fetchOriginalIndex(Index $original, string $action):Index
     {
         $index = new MySqlIndex($action, $original->columnNames, $this->name);
+        $index->name($original->name);
         $index->original = $original;
         $this->indexes[] = $index;
         return $index;

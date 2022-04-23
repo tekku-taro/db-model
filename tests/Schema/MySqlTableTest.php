@@ -83,7 +83,7 @@ class MySqlTableTest extends TestCase
         $sql = $table->generateSql(Table::ALTER_MODE);
         var_export($sql);
         
-        $expected = 'ALTER TABLE test DROP FOREIGN KEY fk_test_user_id_users_id;ALTER TABLE test DROP INDEX idx_test_content_status;ALTER TABLE test ADD COLUMN post_id INT NOT NULL;ALTER TABLE test CHANGE COLUMN status status VARCHAR(5) NOT NULL DEFAULT "0";ALTER TABLE test DROP COLUMN content;ALTER TABLE test ADD FOREIGN KEY FK1 ( post_id ) REFERENCES posts ( id ) ON DELETE cascade;ALTER TABLE test ADD INDEX INDEX1 ( status );';
+        $expected = 'ALTER TABLE test DROP FOREIGN KEY fk_test_user_id_users_id;ALTER TABLE test DROP INDEX fk_test_user_id_users_id;ALTER TABLE test DROP INDEX idx_test_content_status;ALTER TABLE test ADD COLUMN post_id INT NOT NULL;ALTER TABLE test CHANGE COLUMN status status VARCHAR(5) NOT NULL DEFAULT "0";ALTER TABLE test DROP COLUMN content;ALTER TABLE test ADD FOREIGN KEY FK1 ( post_id ) REFERENCES posts ( id ) ON DELETE cascade;ALTER TABLE test ADD INDEX INDEX1 ( status );';
 
         $this->assertEquals($expected, $sql);   
         
