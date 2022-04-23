@@ -13,12 +13,12 @@ abstract class ForeignKey
 
     protected $onUpdate;
 
-    protected $referencedTable;
+    public $referencedTable;
 
     public $tableName;
 
     /** @var string */    
-    protected $referencedColumn;
+    public $referencedColumn;
 
 
     /** @var string $mode create/alter/drop  */
@@ -26,7 +26,7 @@ abstract class ForeignKey
 
 
     /** @var string add/drop  */
-    protected $action;
+    public $action;
 
     public const ADD_ACTION = 'ADD';
     public const DROP_ACTION = 'DROP';   

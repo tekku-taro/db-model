@@ -23,7 +23,7 @@ class SchemaFactory
     }
 
     public static function newColumn(DbDriver $driver, string $name, string $dbType, string $tableName)
-    {        
+    {   
         switch ($driver->type) {
             case DbDriver::MY_SQL:
                 $type = MySqlColumnTypeMap::getTypeName($dbType);

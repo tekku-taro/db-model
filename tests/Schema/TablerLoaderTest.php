@@ -35,8 +35,8 @@ class TablerLoaderTest extends TestCase
 
     public static function tearDownAfterClass():void
     {
-        self::$db->stop();
         Schema::dropTableIfExists(self::$tableName);
+        self::$db->stop();
     }
 
     public function setUp():void

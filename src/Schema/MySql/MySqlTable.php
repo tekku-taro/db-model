@@ -35,7 +35,13 @@ class MySqlTable extends Table
     private function fetchOriginalColumn(string $name, string $action):Column 
     {
         $original = $this->original->getColumn($name);
-        $column = new MySqlColumn($action, $name, $original->type, $this->name);
+        $column = new MySqlColumn($action, $name, $original->typeName, $this->name);
+        if($original->length !== null) {
+            $column->length($original->length);
+        }
+        if($original->precision !== null) {
+            $column->precision($original->precision);
+        }
         $column->original = $original;
         $this->columns[] = $column;
         return $column;
@@ -61,15 +67,16 @@ class MySqlTable extends Table
         $this->fetchOriginalForeign($original, ForeignKey::DROP_ACTION);
     }
 
-    public function dropForeignKeyByColumns(...$columns)    
+    public function dropForeignKeyByColumn(string $column)    
     {
-        $original = $this->original->getForeignByColumns($columns);
+        $original = $this->original->getForeignByColumn($column);
         $this->fetchOriginalForeign($original, ForeignKey::DROP_ACTION);
     }
 
     private function fetchOriginalForeign(ForeignKey $original, string $action):ForeignKey
     {
-        $foreignKey = new MySqlForeignKey($action, $original->columnNames, $this->name);
+        $foreignKey = new MySqlForeignKey($action, $original->columnName, $this->name);
+        $foreignKey->references($original->referencedTable, $original->referencedColumn);
         $foreignKey->original = $original;
         $this->foreignKeys[] = $foreignKey;
         return $foreignKey;

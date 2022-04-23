@@ -13,19 +13,18 @@ abstract class Table
     public const ALTER_MODE = 'ALTER';
     public const DROP_MODE = 'DROP'; 
 
-    protected $name;
+    public $name;
 
     protected $encoding;
 
     /** @var array<Column> */
-    protected $columns;
-
+    protected $columns = [];
     
     /** @var PrimaryKey */
     protected $primaryKey;
     
     /** @var array<ForeignKey> */
-    protected $foreignKeys;
+    protected $foreignKeys = [];
 
     /** 
      * @var array<string,array<string>> 
@@ -42,7 +41,7 @@ abstract class Table
     protected $ukColumns;
 
     /** @var array<Index> */
-    protected $indexes;
+    protected $indexes = [];
 
     /** @var Table */
     public $original;
@@ -53,19 +52,19 @@ abstract class Table
         $this->name = $name;
     }
 
-    abstract public function addColumn(string $name, string $columnType);
+    abstract public function addColumn(string $name, string $columnType):Column;
 
-    abstract public function changeColumn(string $name,string $newName = null);
+    abstract public function changeColumn(string $name,string $newName = null):Column;
 
     abstract public function dropColumn(string $name);
 
-    abstract public function addForeign(string $column);
+    abstract public function addForeign(string $column):ForeignKey;
 
-    abstract public function addIndex(...$columns);
+    abstract public function addIndex(...$columns):Index;
 
     abstract public function dropForeign(string $name);
 
-    abstract public function dropForeignKeyByColumns(...$columns);
+    abstract public function dropForeignKeyByColumn(string $column);
 
     abstract public function dropIndex(string $name);
 
@@ -131,14 +130,14 @@ abstract class Table
      * @param array<string> $columns
      * @return ForeignKey
      */
-    protected function getForeignByColumns(array $columns):ForeignKey
+    protected function getForeignByColumn($column):ForeignKey
     {
         foreach ($this->foreignKeys as $foreignKey) {
-            if(twoArraysHaveSameElements($columns, $foreignKey->columnNames)) {
+            if($column === $foreignKey->columnName) {
                 return $foreignKey;
             }
         }         
-        throw new NotFoundException(implode(',', $columns) . 'カラムからなる外部キーは存在しません。');
+        throw new NotFoundException($column . 'カラムからなる外部キーは存在しません。');
     }
 
     protected function getIndex(string $name):Index
@@ -175,7 +174,7 @@ abstract class Table
                 $sql = $this->getAlterTableSql($mode);
                 break;
             case self::DROP_MODE:
-                $sql = 'DROP TABLE IF EXISTS ' . $this->name;
+                $sql = 'DROP TABLE ' . $this->name . ';';
                 break;
         }
 
@@ -186,6 +185,9 @@ abstract class Table
     {
         $sql = 'CREATE TABLE ' . $this->name . ' ( ';
         $pkColumns = [];
+        $columnSql = [];
+        $foreignSql = [];
+        $indexSql = [];
         foreach ($this->columns as $column) {
             $column->mode($mode);
             $columnSql[] = $column->compile();
@@ -193,22 +195,25 @@ abstract class Table
                 $pkColumns[] = $column->name;
             }
         }
-
-        $sql .= implode(',', $columnSql);
+        if(!empty($columnSql)) {
+            $sql .= implode(',', $columnSql);
+        }
 
         foreach ($this->foreignKeys as $foreignKey) {
             $foreignKey->mode($mode);
             $foreignSql[] = $foreignKey->compile();
         }
-
-        $sql .= ',' . implode(',', $foreignSql);
+        if(!empty($foreignSql)) {
+            $sql .= ',' . implode(',', $foreignSql);
+        }
 
         foreach ($this->indexes as $index) {
             $index->mode($mode);
             $indexSql[] = $index->compile();
         }
-
-        $sql .= ',' . implode(',', $indexSql);
+        if(!empty($indexSql)) {
+            $sql .= ',' . implode(',', $indexSql);
+        }
 
         if(isset($this->primaryKey) || !empty($pkColumns)) {
             $sql .= ',' .  $this->compilePk($pkColumns); 
@@ -229,26 +234,55 @@ abstract class Table
     {
         $sql = '';
         $baseSql = 'ALTER TABLE ' . $this->name . ' ';
+
+        foreach ($this->foreignKeys as $foreignKey) {
+            if($foreignKey->action === ForeignKey::DROP_ACTION) {
+                $foreignKey->mode($mode);
+                $sql .= $baseSql . $foreignKey->compile() . ';';
+            }
+        }
+
+        foreach ($this->indexes as $index) {
+            if ($index->action === Index::DROP_ACTION) {
+                $index->mode($mode);
+                $sql .= $baseSql . $index->compile() . ';';
+            }
+        }        
+
+        if(isset($this->primaryKey) && $this->primaryKey->action === PrimaryKey::DROP_ACTION) {
+            $sql .= $this->primaryKey->compile() . ';'; 
+        }        
+
         foreach ($this->columns as $column) {
             $column->mode($mode);
             $sql .= $baseSql . $column->compile() . ';';
         }
 
         foreach ($this->foreignKeys as $foreignKey) {
-            $foreignKey->mode($mode);
-            $sql .= $baseSql . $foreignKey->compile() . ';';
+            if ($foreignKey->action === ForeignKey::ADD_ACTION) {
+                $foreignKey->mode($mode);
+                $sql .= $baseSql . $foreignKey->compile() . ';';
+            }
         }
 
         foreach ($this->indexes as $index) {
-            $index->mode($mode);
-            $sql .= $baseSql . $index->compile() . ';';
+            if ($index->action === Index::ADD_ACTION) {
+                $index->mode($mode);
+                $sql .= $baseSql . $index->compile() . ';';
+            }
         }
 
-        if(isset($this->primaryKey)) {
+        if(isset($this->primaryKey) && $this->primaryKey->action === PrimaryKey::ADD_ACTION) {
             $sql .= $this->primaryKey->compile() . ';';
         }
        
         return $sql;
+    }
+
+    private function validate()
+    {
+        // Columnが isPk,isUkなのにnullable設定は不可
+        // after,before のカラム名の不存在チェック       
     }
 
     public function hydrate(array $data)

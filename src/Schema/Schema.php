@@ -25,11 +25,11 @@ class Schema
         $table = SchemaFactory::newTable($name, $driver);
         $callback($table);
         $sql = $table->generateSql(Table::CREATE_MODE);
-        
+    
         return $dbManipulator->exec($sql);        
     }
 
-    public static function getTable(string $name)    
+    public static function getTable(string $name):Table
     {
         $config = DB::getConfig(self::$connName);
         $driver = new DbDriver($config['driver'],$config['dbname']);
@@ -41,6 +41,14 @@ class Schema
         $dbManipulator = self::getDbManipulator();
         self::useTable($dbManipulator);
         $sql = $table->generateSql(Table::ALTER_MODE);
+        return $dbManipulator->exec($sql); 
+    }
+
+    public static function dropTable(Table $table)    
+    {
+        $dbManipulator = self::getDbManipulator();
+        self::useTable($dbManipulator);
+        $sql = $table->generateSql(Table::DROP_MODE);
         return $dbManipulator->exec($sql); 
     }
 
@@ -67,7 +75,8 @@ class Schema
     private function setOriginal(Table $originalTable)
     {
         /** @var Table $table */
-        $table = new ${get_class($originalTable)};
+        $class = get_class($originalTable);
+        $table = new $class($originalTable->name);
         $table->original = $originalTable;
         return $table;
     }

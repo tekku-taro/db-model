@@ -2,6 +2,8 @@
 namespace Taro\DBModel\Schema\TableLoading;
 
 use Taro\DBModel\DB\DbManipulator;
+use Taro\DBModel\Exceptions\NotFoundException;
+use Taro\DBModel\Query\DirectSql;
 use Taro\DBModel\Schema\DbDriver;
 use Taro\DBModel\Schema\MySql\MySqlTableFetcher;
 
@@ -43,12 +45,29 @@ abstract class TableFetcher
                 break;
         }
         
+        if(!$fetcher->tableExists($name)) {
+            throw new NotFoundException($name . 'テーブルが見つかりません！');
+        }
         $fetcher->setTableColumns();
         $fetcher->setTablePrimaryKey();
         $fetcher->setTableForeignKeys();
         $fetcher->setTableIndexes();
         $fetcher->setEncoding();
         return $fetcher;
+    }
+
+    protected function tableExists(string $tableName):bool
+    {
+        $tableNames = [];
+        $sql = 'SHOW TABLES';
+        $result = DirectSql::query()->prepareSql($sql)->runSql();
+        if(is_array($result)) {
+            foreach ($result as $key => $row) {
+               $tableNames[] = array_values($row)[0];
+            }
+            return in_array($tableName, $tableNames);
+        }
+        return false;
     }
 
     public function setEncoding()

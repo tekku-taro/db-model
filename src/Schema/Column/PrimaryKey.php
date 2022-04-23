@@ -12,7 +12,7 @@ abstract class PrimaryKey
 
 
     /** @var string add/drop  */
-    protected $action;
+    public $action;
 
     public const ADD_ACTION = 'ADD';
     public const DROP_ACTION = 'DROP';   

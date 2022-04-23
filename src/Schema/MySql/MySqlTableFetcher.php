@@ -10,6 +10,15 @@ use Taro\DBModel\Schema\TableLoading\TablePrimaryKeyInfo;
 
 class MySqlTableFetcher extends TableFetcher
 {
+    public function getTableListSql():string
+    {
+        return 'SELECT *
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_NAME = "'.$this->name.'"
+        AND TABLE_SCHEMA = "'.$this->driver->dbName.'"
+        ;';
+    }
+
     public function getTableColumnsSql():string
     {
         return 'SELECT *

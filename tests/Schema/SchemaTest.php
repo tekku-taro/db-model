@@ -74,15 +74,46 @@ class SchemaTest extends TestCase
         return preg_replace( "/\r|\n/", "", $string );
     }
 
+
     /**
      * @return void
      */
-    public function testDropTable()
+    public function testGetTable()
+    {
+        $table = Schema::getTable('test2');
+
+        $this->assertInstanceOf(Table::class, $table);
+
+        $this->assertEquals('test2', $table->name); 
+    }
+
+    /**
+     * @return void
+     */
+    public function testDropTableIfExists()
     {
         Schema::dropTableIfExists('test2');
 
         $result = $this->tableExists('test2');
         $this->assertFalse($result);        
     }
+
+    /**
+     * @return void
+     */
+    public function testDropTable()
+    {
+        Schema::createTable('test2', function(Table $table){
+            $table->addColumn('id','int')->unsigned()->primary();
+        });
+
+        $table = Schema::getTable('test2');
+
+        Schema::dropTable($table);
+
+        $result = $this->tableExists('test2');
+        $this->assertFalse($result);        
+    }
+
 
 }

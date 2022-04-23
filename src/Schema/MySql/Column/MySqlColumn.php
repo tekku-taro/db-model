@@ -4,6 +4,7 @@ namespace Taro\DBModel\Schema\MySql\Column;
 use Taro\DBModel\Exceptions\NotFoundException;
 use Taro\DBModel\Schema\Column\Column;
 use Taro\DBModel\Schema\MySql\Column\ColumnType\MySqlColumnTypeMap;
+use Taro\DBModel\Schema\Table;
 
 class MySqlColumn extends Column
 {
@@ -12,12 +13,12 @@ class MySqlColumn extends Column
         switch ($this->action) {
             case Column::ADD_ACTION:
                 $sql = $this->generateClause();
-                if($this->mode === 'alter') {
+                if($this->mode === Table::ALTER_MODE) {
                     $sql = 'ADD COLUMN ' . $sql;
                 }
                 break;
             case Column::CHANGE_ACTION:
-                $sql = 'CHANGE COLUMN ' . $this->generateColumnName() . ' ' . $this->generateClause();
+                $sql = 'CHANGE COLUMN ' . $this->generateClause();
                 break;
             case Column::DROP_ACTION:
                 $sql = 'DROP COLUMN ' . $this->name;
@@ -30,15 +31,15 @@ class MySqlColumn extends Column
     private function generateColumnName():string
     {
         $sql = $this->name;
-        if($this->rename !== null) {
-            $sql .= ' ' . $this->rename;
+        if($this->action === Column::CHANGE_ACTION) {
+            $sql .= ' ' . ($this->rename ?? $this->name);
         }
         return $sql;
     }
 
     private function generateClause():string
     {
-        $sql = $this->name . ' ' . $this->generateType();
+        $sql = $this->generateColumnName() . ' ' . $this->generateType();
         if(!empty($options = $this->generateOptions())) {
             $sql .= ' ' . $options;
         }
@@ -48,6 +49,7 @@ class MySqlColumn extends Column
     private function generateType():string
     {
         $block = $this->type;
+   
         if(isset($this->length)) {
             $block .= '(' . $this->length . ')';
         }elseif(isset($this->precision)) {

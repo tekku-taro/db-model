@@ -10,9 +10,9 @@ abstract class Column
     
     public $tableName;
 
-    protected $length;
+    public $length;
 
-    protected $precision;
+    public $precision;
 
     /** @var bool */
     protected $nullable;
@@ -56,13 +56,15 @@ abstract class Column
     protected $rename;
 
 
-    function __construct(string $action, string $name, string $type = 'string',string $tableName)
+    function __construct(string $action, string $name, $type, string $tableName)
     {
         $this->action = $action;
         $this->name = $name;
         $this->tableName = $tableName;
-        $this->typeName = $type;
-        $this->type($type);
+        if($type !== null) {
+            $this->typeName = $type;
+            $this->type($type);
+        }
     }
 
     public function mode(string $mode):self
