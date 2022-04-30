@@ -2,6 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 use Taro\DBModel\DB\DB;
+use Taro\DBModel\Exceptions\WrongSqlException;
 use Taro\DBModel\Schema\MySql\MySqlTable;
 use Taro\DBModel\Schema\Schema;
 use Taro\DBModel\Schema\Table;
@@ -103,4 +104,87 @@ class MySqlTableTest extends TestCase
         $this->assertEquals($expected, $sql);        
     }
 
+    /**
+     * @return void
+     */
+    public function testAddPrimaryKey()
+    {
+        $table = new MySqlTable('test');
+        $table->addColumn('id','int');
+        $table->addColumn('task','string');
+
+        $table->addPrimaryKey('id', 'task');
+
+        $sql = $table->generateSql(Table::CREATE_MODE);
+        var_export($sql);
+        
+        $expected = 'CREATE TABLE test ( id INT NOT NULL,task VARCHAR(255) NOT NULL,PRIMARY KEY  ( id,task ) );';
+
+        $this->assertEquals($expected, $sql);      
+    }
+
+    /**
+     * @return void
+     */
+    public function testChangePrimaryKey()
+    {
+        Schema::createTable('test', function(Table $table){
+            $table->addColumn('id','int');
+            $table->addColumn('task','string');
+    
+            $table->addPrimaryKey('id', 'task');
+        }); 
+
+        $table = Schema::getTable('test');
+        
+        Schema::dropTableIfExists('test');
+
+        $table->dropPrimaryKey();
+        $table->addPrimaryKey('task');
+
+        $sql = $table->generateSql(Table::ALTER_MODE);
+        var_export($sql);
+        
+        $expected = 'ALTER TABLE test DROP PRIMARY KEY;ALTER TABLE test ADD PRIMARY KEY  ( task );';
+
+        $this->assertEquals($expected, $sql);     
+    }
+
+ 
+
+    /**
+     * @expectedException WrongSqlException
+     */
+    public function testValidateNullable()
+    {
+        $this->expectException(WrongSqlException::class);
+        Schema::createTable('test', function(Table $table){
+            $table->addColumn('id','int')->nullable();
+            $table->addColumn('task','string');
+    
+            $table->addPrimaryKey('id');
+        });    
+    }    
+
+
+    /**
+     * @expectedException WrongSqlException
+     */
+    public function testValidateAfter()
+    {
+        $this->expectException(WrongSqlException::class);
+        Schema::createTable('test', function(Table $table){
+            $table->addColumn('id','int');
+            $table->addColumn('task','string');
+    
+            $table->addPrimaryKey('id');
+        }); 
+
+        $table = Schema::getTable('test');
+        
+        Schema::dropTableIfExists('test');
+
+        $table->addColumn('chicken','string')->after('not_exsiting_column'); 
+        $sql = $table->generateSql(Table::ALTER_MODE); 
+    }        
 }

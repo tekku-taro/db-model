@@ -2,6 +2,7 @@
 namespace Taro\DBModel\Schema\MySql\Column;
 
 use ErrorException;
+use Taro\DBModel\Exceptions\WrongSqlException;
 use Taro\DBModel\Schema\Column\ForeignKey;
 use Taro\DBModel\Schema\Table;
 
@@ -30,6 +31,9 @@ class MySqlForeignKey extends ForeignKey
                 }
                 break;
             case ForeignKey::DROP_ACTION:
+                if($this->mode === Table::CREATE_MODE) {
+                    throw new WrongSqlException('テーブル作成時は、外部キー削除クエリは実行できません。');
+                }                  
                 $sql = 'DROP FOREIGN KEY ' . $this->name;
                 break;
         }

@@ -120,7 +120,7 @@ class MySqlTable extends Table
         $original = $this->original->getPrimaryKey();
         $primaryKey = new MySqlPrimaryKey(PrimaryKey::DROP_ACTION);
         $primaryKey->original = $original;
-        $this->primaryKey = $primaryKey;
+        $this->primaryKeyToBeDropped = $primaryKey;
     }
 
     public function addUnique(...$columns)    

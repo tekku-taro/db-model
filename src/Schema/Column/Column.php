@@ -15,7 +15,7 @@ abstract class Column
     public $precision;
 
     /** @var bool */
-    protected $nullable;
+    public $nullable;
 
     protected $default;
 
@@ -31,7 +31,7 @@ abstract class Column
     protected $mode;
 
     /** @var string add/change/drop  */
-    protected $action;
+    public $action;
 
     public const ADD_ACTION = 'ADD';
     public const CHANGE_ACTION = 'CHANGE';
@@ -41,14 +41,14 @@ abstract class Column
     public $isPk;
 
     /** @var bool */
-    protected $isUk;
+    public $isUk;
 
     /** @var bool */
     public $autoIncrement;
 
-    protected $after;
+    public $after;
 
-    protected $before;
+    public $before;
 
     /** @var Column */
     public $original;    

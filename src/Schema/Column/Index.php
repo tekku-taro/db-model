@@ -12,7 +12,7 @@ abstract class Index
     public $tableName;
 
     /** @var bool */
-    protected $unique;
+    public $unique;
 
     /** @var string create/alter/drop  */
     protected $mode;

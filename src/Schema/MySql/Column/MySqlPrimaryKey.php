@@ -1,6 +1,7 @@
 <?php
 namespace Taro\DBModel\Schema\MySql\Column;
 
+use Taro\DBModel\Exceptions\WrongSqlException;
 use Taro\DBModel\Schema\Column\PrimaryKey;
 use Taro\DBModel\Schema\Table;
 
@@ -16,6 +17,9 @@ class MySqlPrimaryKey extends PrimaryKey
                 }
                 break;
             case PrimaryKey::DROP_ACTION:
+                if($this->mode === Table::CREATE_MODE) {
+                    throw new WrongSqlException('テーブル作成時は、主キー削除クエリは実行できません。');
+                }                     
                 $sql = 'DROP PRIMARY KEY';
                 break;
         }

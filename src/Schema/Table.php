@@ -2,6 +2,7 @@
 namespace Taro\DBModel\Schema;
 
 use Taro\DBModel\Exceptions\NotFoundException;
+use Taro\DBModel\Exceptions\WrongSqlException;
 use Taro\DBModel\Schema\Column\Column;
 use Taro\DBModel\Schema\Column\ForeignKey;
 use Taro\DBModel\Schema\Column\Index;
@@ -23,22 +24,11 @@ abstract class Table
     /** @var PrimaryKey */
     protected $primaryKey;
     
+    /** @var PrimaryKey drop用 */
+    protected $primaryKeyToBeDropped;
+    
     /** @var array<ForeignKey> */
     protected $foreignKeys = [];
-
-    /** 
-     * @var array<string,array<string>> 
-     * ['add'=>[], 'remove'=>[]]
-     * 
-     * */
-    protected $pkColumns;
-
-    /** 
-     * @var array<string,array<string>> 
-     * ['add'=>[], 'remove'=>[]]
-     * 
-     * */    
-    protected $ukColumns;
 
     /** @var array<Index> */
     protected $indexes = [];
@@ -72,28 +62,43 @@ abstract class Table
 
     abstract public function addPrimaryKey(...$columns);
 
+    abstract public function dropPrimaryKey();
+
     abstract public function addUnique(...$columns);
 
     public function checkIfExists(string $componentClass, string $name):bool
-    {
+    {   
         switch ($componentClass) {
             case Column::class:
                 $list = $this->columns;                
+                if(isset($this->original)) {
+                    $list = array_merge($list, $this->original->columns);
+                }
                 break;
             case ForeignKey::class:
                 $list = $this->foreignKeys;                
+                if(isset($this->original)) {
+                    $list = array_merge($list, $this->original->foreignKeys);
+                }
                 break;
             case Index::class:
                 $list = $this->indexes; 
+                if(isset($this->original)) {
+                    $list = array_merge($list, $this->original->indexes);
+                }                
                 break;
         }
 
+        $nameList = [];
         foreach ($list as $object) {
-            if($object->name === $name) {
-                return true;
+            if($object->action === 'DROP') {
+                $nameList = array_diff($nameList, [$object->name]);
+            } else {
+                $nameList[] = $object->name;
             }
         }
-        return false;
+        
+        return in_array($name, $nameList);
     }
 
 
@@ -166,6 +171,8 @@ abstract class Table
 
     public function generateSql(string $mode):string
     {
+        $this->validate();
+
         switch ($mode) {
             case self::CREATE_MODE:
                 $sql = $this->getCreateTableSql($mode);   
@@ -234,6 +241,7 @@ abstract class Table
     {
         $sql = '';
         $baseSql = 'ALTER TABLE ' . $this->name . ' ';
+        $pkColumns = [];
 
         foreach ($this->foreignKeys as $foreignKey) {
             if($foreignKey->action === ForeignKey::DROP_ACTION) {
@@ -249,13 +257,16 @@ abstract class Table
             }
         }        
 
-        if(isset($this->primaryKey) && $this->primaryKey->action === PrimaryKey::DROP_ACTION) {
-            $sql .= $this->primaryKey->compile() . ';'; 
+        if(isset($this->primaryKeyToBeDropped)) {
+            $sql .= $baseSql . $this->primaryKeyToBeDropped->compile() . ';'; 
         }        
 
         foreach ($this->columns as $column) {
             $column->mode($mode);
             $sql .= $baseSql . $column->compile() . ';';
+            if($column->isPk) {
+                $pkColumns[] = $column->name;
+            }            
         }
 
         foreach ($this->foreignKeys as $foreignKey) {
@@ -272,17 +283,53 @@ abstract class Table
             }
         }
 
-        if(isset($this->primaryKey) && $this->primaryKey->action === PrimaryKey::ADD_ACTION) {
-            $sql .= $this->primaryKey->compile() . ';';
+        if(isset($this->primaryKey) && $this->primaryKey->action === PrimaryKey::ADD_ACTION || !empty($pkColumns)) {
+            $this->primaryKey->mode($mode);
+            $sql .= $baseSql . $this->primaryKey->compile($pkColumns) . ';';
         }
        
         return $sql;
     }
 
+    private function getPkColumns()
+    {
+        $pkColumns = [];
+        if(!isset($this->primaryKeyToBeDropped) && isset($this->original->primaryKey)) {
+            $pkColumns = $this->original->primaryKey->columnNames;
+        }
+        if(isset($this->primaryKey)) {
+            $pkColumns = array_merge($pkColumns, $this->primaryKey->columnNames);
+        }
+        
+        foreach ($this->columns as $column) {
+            if($column->isPk) {
+                $pkColumns[] = $column->name;
+            }
+        }
+        return array_unique($pkColumns);
+    }
+
     private function validate()
     {
-        // Columnが isPk,isUkなのにnullable設定は不可
-        // after,before のカラム名の不存在チェック       
+        $pkColumns = $this->getPkColumns();
+        foreach ($this->columns as $column) {
+            // Columnが isPkなのにnullable設定は不可
+            if(in_array($column->name, $pkColumns) && $column->nullable) {
+                throw new WrongSqlException($column->name . '主キーカラムはnullable設定はできません。');
+            }
+            // after,before のカラム名の不存在チェック  
+            if($column->after !== null) {
+                if(!$this->checkIfExists(Column::class, $column->after)) {
+                    throw new WrongSqlException($column->after . 'カラムが存在しません。(AFTER)');  
+                }
+            } 
+            if($column->before !== null) {
+                if(!$this->checkIfExists(Column::class, $column->before)) {
+                    throw new WrongSqlException($column->before . 'カラムが存在しません。(BEFORE)');  
+                }                
+            } 
+        }   
+        
     }
 
     public function hydrate(array $data)

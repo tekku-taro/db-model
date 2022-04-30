@@ -2,6 +2,7 @@
 namespace Taro\DBModel\Schema\MySql\Column;
 
 use Taro\DBModel\Exceptions\NotFoundException;
+use Taro\DBModel\Exceptions\WrongSqlException;
 use Taro\DBModel\Schema\Column\Column;
 use Taro\DBModel\Schema\MySql\Column\ColumnType\MySqlColumnTypeMap;
 use Taro\DBModel\Schema\Table;
@@ -18,9 +19,15 @@ class MySqlColumn extends Column
                 }
                 break;
             case Column::CHANGE_ACTION:
+                if($this->mode === Table::CREATE_MODE) {
+                    throw new WrongSqlException('テーブル作成時は、カラム更新クエリは実行できません。');
+                }                
                 $sql = 'CHANGE COLUMN ' . $this->generateClause();
                 break;
             case Column::DROP_ACTION:
+                if($this->mode === Table::CREATE_MODE) {
+                    throw new WrongSqlException('テーブル作成時は、カラム削除クエリは実行できません。');
+                }                
                 $sql = 'DROP COLUMN ' . $this->name;
                 break;
         }

@@ -1,6 +1,7 @@
 <?php
 namespace Taro\DBModel\Schema\MySql\Column;
 
+use Taro\DBModel\Exceptions\WrongSqlException;
 use Taro\DBModel\Schema\Column\Index;
 use Taro\DBModel\Schema\Table;
 
@@ -16,6 +17,9 @@ class MySqlIndex extends Index
                 }
                 break;
             case Index::DROP_ACTION:
+                if($this->mode === Table::CREATE_MODE) {
+                    throw new WrongSqlException('テーブル作成時は、インデックス削除クエリは実行できません。');
+                }                  
                 $sql = 'DROP ' . $this->selectIndexOrUnique() . $this->name;
                 break;
         }
