@@ -64,6 +64,13 @@ class MySqlTableFetcher extends TableFetcher
     }
 
 
+    public function setEncoding()
+    {
+        $sql = $this->getTableEncodingSql();
+        $result = $this->execAndGetTableInfo($sql);
+        $this->encoding = $result[0]['character_set_name'];
+    }    
+
     /**
      * @param array<string> $resultSet
      * @return void

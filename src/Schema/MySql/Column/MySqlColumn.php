@@ -129,5 +129,24 @@ class MySqlColumn extends Column
     {
         $this->precision = $number;
         return $this;
+    }   
+    
+
+    public function unsigned():self
+    {
+        $this->unsigned = true;
+        return $this;
+    }
+
+    public function after(string $columnName):self
+    {
+        $this->after = $columnName;
+        return $this;
+    }
+
+    public function before(string $columnName):self
+    {
+        $this->before = $columnName;        
+        return $this;
     }    
 }

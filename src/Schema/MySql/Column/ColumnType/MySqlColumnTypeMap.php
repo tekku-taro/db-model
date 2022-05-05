@@ -21,7 +21,7 @@ class MySqlColumnTypeMap extends ColumnTypeMap
         'string' => ['type'=>'VARCHAR','length'=> true],
         'text' => ['type'=>'TEXT','length'=> false],
         'blob' => ['type'=>'BLOB','length'=> false],
-        'date' => ['type'=>'ENUM','length'=> false],
+        'date' => ['type'=>'DATE','length'=> false],
         'datetime' => ['type'=>'DATETIME','length'=> false],
         'time' => ['type'=>'TIME','length'=> false],
         'timestamp' => ['type'=>'TIMESTAMP','length'=> false],
