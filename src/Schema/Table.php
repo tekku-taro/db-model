@@ -42,15 +42,7 @@ abstract class Table
         $this->name = $name;
     }
 
-    abstract public function addColumn(string $name, string $columnType):Column;
-
-    abstract public function changeColumn(string $name,string $newName = null):Column;
-
     abstract public function dropColumn(string $name);
-
-    abstract public function addForeign(string $column):ForeignKey;
-
-    abstract public function addIndex(...$columns):Index;
 
     abstract public function dropForeign(string $name);
 

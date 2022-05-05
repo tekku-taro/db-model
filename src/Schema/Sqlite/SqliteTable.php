@@ -6,13 +6,14 @@ use Taro\DBModel\Schema\Column\Column;
 use Taro\DBModel\Schema\Column\ForeignKey;
 use Taro\DBModel\Schema\Column\Index;
 use Taro\DBModel\Schema\Column\PrimaryKey;
+use Taro\DBModel\Schema\Interfaces\ISqliteTable;
 use Taro\DBModel\Schema\Sqlite\Column\SqliteColumn;
 use Taro\DBModel\Schema\Sqlite\Column\SqliteForeignKey;
 use Taro\DBModel\Schema\Sqlite\Column\SqliteIndex;
 use Taro\DBModel\Schema\Sqlite\Column\SqlitePrimaryKey;
 use Taro\DBModel\Schema\Table;
 
-class SqliteTable extends Table
+class SqliteTable extends Table implements ISqliteTable
 {
 
     
@@ -28,14 +29,14 @@ class SqliteTable extends Table
     }
 
 
-    public function addColumn(string $name, string $columnType):Column
+    public function addColumn(string $name, string $columnType):SqliteColumn
     {
         $column = new SqliteColumn(Column::ADD_ACTION, $name, $columnType, $this->name);
         $this->columns[] = $column;
         return $column;
     }
 
-    public function changeColumn(string $name,string $newName = null):Column 
+    public function changeColumn(string $name,string $newName = null):SqliteColumn 
     {
         $column = $this->fetchOriginalColumn($name, Column::CHANGE_ACTION);
         $createTableForUpdate = $this->getCreateTableForUpdate();
@@ -50,7 +51,7 @@ class SqliteTable extends Table
         $this->columns[] = $column;
     }
 
-    private function fetchOriginalColumn(string $name, string $action):Column 
+    private function fetchOriginalColumn(string $name, string $action):SqliteColumn 
     {
         $original = $this->original->getColumn($name);
         $column = new SqliteColumn($action, $name, $original->typeName, $this->name);
@@ -59,14 +60,14 @@ class SqliteTable extends Table
         return $column;
     }
 
-    public function addForeign(string $column):ForeignKey
+    public function addForeign(string $column):SqliteForeignKey
     {
         $foreignKey = new SqliteForeignKey(ForeignKey::ADD_ACTION, $column, $this->name);
         $this->foreignKeys[] = $foreignKey;
         return $foreignKey;
     }
 
-    public function addIndex(...$columns):Index
+    public function addIndex(...$columns):SqliteIndex
     {
         $index = new SqliteIndex(Index::ADD_ACTION, $columns, $this->name);
         $this->indexes[] = $index;
@@ -87,7 +88,7 @@ class SqliteTable extends Table
         $this->dropIndex($foreignKey->name);
     }
 
-    private function fetchOriginalForeign(ForeignKey $original, string $action):ForeignKey
+    private function fetchOriginalForeign(ForeignKey $original, string $action):SqliteForeignKey
     {
         $foreignKey = new SqliteForeignKey($action, $original->columnName, $this->name);
         $foreignKey->references($original->referencedTable, $original->referencedColumn);
@@ -111,7 +112,7 @@ class SqliteTable extends Table
         $this->fetchOriginalIndex($original, Index::DROP_ACTION);
     }
 
-    private function fetchOriginalIndex(Index $original, string $action):Index
+    private function fetchOriginalIndex(Index $original, string $action):SqliteIndex
     {
         $index = new SqliteIndex($action, $original->columnNames, $this->name);
         $index->name($original->name);

@@ -1,26 +1,28 @@
 <?php
 namespace Taro\DBModel\Schema\MySql;
 
+
 use Taro\DBModel\Schema\Column\Column;
 use Taro\DBModel\Schema\Column\ForeignKey;
 use Taro\DBModel\Schema\Column\Index;
 use Taro\DBModel\Schema\Column\PrimaryKey;
+use Taro\DBModel\Schema\Interfaces\IMySqlTable;
 use Taro\DBModel\Schema\MySql\Column\MySqlColumn;
 use Taro\DBModel\Schema\MySql\Column\MySqlForeignKey;
 use Taro\DBModel\Schema\MySql\Column\MySqlIndex;
 use Taro\DBModel\Schema\MySql\Column\MySqlPrimaryKey;
 use Taro\DBModel\Schema\Table;
 
-class MySqlTable extends Table
+class MySqlTable extends Table implements IMySqlTable
 {
-    public function addColumn(string $name, string $columnType):Column
+    public function addColumn(string $name, string $columnType):MySqlColumn
     {
         $column = new MySqlColumn(Column::ADD_ACTION, $name, $columnType, $this->name);
         $this->columns[] = $column;
         return $column;
     }
 
-    public function changeColumn(string $name,string $newName = null):Column 
+    public function changeColumn(string $name,string $newName = null):MySqlColumn 
     {
         $column = $this->fetchOriginalColumn($name, Column::CHANGE_ACTION);
         return $column;
@@ -32,7 +34,7 @@ class MySqlTable extends Table
         $this->fetchOriginalColumn($name, Column::DROP_ACTION);
     }
 
-    private function fetchOriginalColumn(string $name, string $action):Column 
+    private function fetchOriginalColumn(string $name, string $action):MySqlColumn 
     {
         $original = $this->original->getColumn($name);
         $column = new MySqlColumn($action, $name, $original->typeName, $this->name);
@@ -47,14 +49,14 @@ class MySqlTable extends Table
         return $column;
     }
 
-    public function addForeign(string $column):ForeignKey
+    public function addForeign(string $column):MySqlForeignKey
     {
         $foreignKey = new MySqlForeignKey(ForeignKey::ADD_ACTION, $column, $this->name);
         $this->foreignKeys[] = $foreignKey;
         return $foreignKey;
     }
 
-    public function addIndex(...$columns):Index
+    public function addIndex(...$columns):MySqlIndex
     {
         $index = new MySqlIndex(Index::ADD_ACTION, $columns, $this->name);
         $this->indexes[] = $index;
@@ -75,7 +77,7 @@ class MySqlTable extends Table
         $this->dropIndex($foreignKey->name);
     }
 
-    private function fetchOriginalForeign(ForeignKey $original, string $action):ForeignKey
+    private function fetchOriginalForeign(ForeignKey $original, string $action):MySqlForeignKey
     {
         $foreignKey = new MySqlForeignKey($action, $original->columnName, $this->name);
         $foreignKey->references($original->referencedTable, $original->referencedColumn);
@@ -98,7 +100,7 @@ class MySqlTable extends Table
         $this->fetchOriginalIndex($original, Index::DROP_ACTION);
     }
 
-    private function fetchOriginalIndex(Index $original, string $action):Index
+    private function fetchOriginalIndex(Index $original, string $action):MySqlIndex
     {
         $index = new MySqlIndex($action, $original->columnNames, $this->name);
         $index->name($original->name);
