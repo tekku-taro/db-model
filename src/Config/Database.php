@@ -7,15 +7,15 @@ return [
     'default'=>'mysql',
     'connections' => [
         'mysql'=>[
-            'driver'=>env('DB_DRIVER', 'mysql'),
-            'host'=>env('DB_HOST', 'localhost'),
-            'user'=>env('DB_USER', 'root'),
-            'password'=>env('DB_PASSWORD', ''),
-            'dbname'=>env('DB_NAME', 'tasksdb'),
+            'driver'=>'mysql',
+            'host'=>'localhost',
+            'user'=>'root',
+            'password'=>'',
+            'dbname'=>'tasksdb',
         ],
         'sqlite'=>[
-            'driver'=>env('DB_DRIVER', 'sqlite'),
-            'dsn'=>env('DB_DSN', 'sqlite:' . FileHandler::SQLITE_PATH),
+            'driver'=>'sqlite',
+            'dsn'=>'sqlite:' . FileHandler::SQLITE_PATH,
         ],
     ]
 ];
