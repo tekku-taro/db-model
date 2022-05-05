@@ -51,7 +51,7 @@ class MySqlTableTest extends TestCase
      */
     public function testGenerateAlterTable()
     {
-        Schema::createTable('test', function(Table $table){
+        Schema::createTable('test', function(MySqlTable $table){
             $table->addColumn('id','int')->unsigned()->primary();
             $table->addColumn('content','text')->nullable();
             $table->addColumn('status','string')->length(5)->default('good');
@@ -61,6 +61,7 @@ class MySqlTableTest extends TestCase
             $table->addForeign('user_id')->references('users', 'id')->onDelete('CASCADE');
         }); 
 
+        /** @var MySqlTable $table */
         $table = Schema::getTable('test');
 
         Schema::dropTableIfExists('test');
@@ -88,7 +89,7 @@ class MySqlTableTest extends TestCase
      */
     public function testGenerateDropTable()
     {
-        Schema::createTable('test', function(Table $table){
+        Schema::createTable('test', function(MySqlTable $table){
             $table->addColumn('id','int')->unsigned()->primary();
         }); 
 
@@ -128,7 +129,7 @@ class MySqlTableTest extends TestCase
      */
     public function testChangePrimaryKey()
     {
-        Schema::createTable('test', function(Table $table){
+        Schema::createTable('test', function(MySqlTable $table){
             $table->addColumn('id','int');
             $table->addColumn('task','string');
     
@@ -158,7 +159,7 @@ class MySqlTableTest extends TestCase
     public function testValidateNullable()
     {
         $this->expectException(WrongSqlException::class);
-        Schema::createTable('test', function(Table $table){
+        Schema::createTable('test', function(MySqlTable $table){
             $table->addColumn('id','int')->nullable();
             $table->addColumn('task','string');
     
@@ -173,13 +174,14 @@ class MySqlTableTest extends TestCase
     public function testValidateAfter()
     {
         $this->expectException(WrongSqlException::class);
-        Schema::createTable('test', function(Table $table){
+        Schema::createTable('test', function(MySqlTable $table){
             $table->addColumn('id','int');
             $table->addColumn('task','string');
     
             $table->addPrimaryKey('id');
         }); 
 
+        /** @var MySqlTable $table */
         $table = Schema::getTable('test');
         
         Schema::dropTableIfExists('test');

@@ -3,12 +3,13 @@
 use PHPUnit\Framework\TestCase;
 use Taro\DBModel\DB\DB;
 use Taro\DBModel\Schema\DbDriver;
+use Taro\DBModel\Schema\MySql\MySqlTable;
 use Taro\DBModel\Schema\Schema;
 use Taro\DBModel\Schema\Table;
 use Taro\DBModel\Schema\TableLoading\TableFetcher;
 use Taro\DBModel\Schema\TableLoading\TableLoader;
 
-class TablerLoaderTest extends TestCase
+class MySqlTableLoaderTest extends TestCase
 {
 
     /** @var DB */
@@ -22,7 +23,7 @@ class TablerLoaderTest extends TestCase
     public static function setUpBeforeClass():void
     {
         self::$db = DB::start('mysql', true);
-        Schema::createTable(self::$tableName, function(Table $table){
+        Schema::createTable(self::$tableName, function(MySqlTable $table){
             $table->addColumn('id','int')->unsigned()->primary();
             $table->addColumn('content','text')->nullable();
             $table->addColumn('status','string')->length(5)->default('good');

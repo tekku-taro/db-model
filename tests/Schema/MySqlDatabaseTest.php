@@ -5,7 +5,7 @@ use Taro\DBModel\DB\DbConnection;
 use Taro\DBModel\Schema\Database;
 use Taro\DBModel\Exceptions\DatabaseConnectionException;
 
-class DatabaseTest extends TestCase
+class MySqlDatabaseTest extends TestCase
 {
 
     private static $dbName1 = 'db_create_test';
@@ -23,17 +23,17 @@ class DatabaseTest extends TestCase
 
     public static function tearDownAfterClass(): void
     {
-        Database::dropIfExists(self::$dbName1);
-        Database::dropIfExists(self::$dbName2);
+        Database::dropIfExists(self::$dbName1, 'mysql');
+        Database::dropIfExists(self::$dbName2, 'mysql');
     }
 
     private function getConfig($dbName)
     {
         return [
-            'driver'=>env('DB_DRIVER', 'mysql'),
-            'host'=>env('DB_HOST', 'localhost'),
-            'user'=>env('DB_USER', 'root'),
-            'password'=>env('DB_PASSWORD', ''),
+            'driver'=>'mysql',
+            'host'=>'localhost',
+            'user'=>'root',
+            'password'=>'',
             'dbname'=>$dbName,
         ];
         
@@ -45,7 +45,7 @@ class DatabaseTest extends TestCase
      */
     public function testCreate()
     {
-        Database::create(self::$dbName1, 'utf8');
+        Database::create(self::$dbName1, 'utf8', 'mysql');
 
         $dbh = DbConnection::open(self::$connName1, $this->getConfig(self::$dbName1));
 
