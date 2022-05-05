@@ -10,18 +10,20 @@ class Schema
 {
     private static $connName;
 
-    private static function useTable(DbManipulator $dbManipulator):void
+    private static function useDB(DbManipulator $dbManipulator):void
     {
         $config = DB::getConfig(self::$connName);      
-        $dbManipulator->exec('USE ' . $config['dbname'] . ';');       
+        if(isset($config['dbname'])) {
+            $dbManipulator->exec('USE ' . $config['dbname'] . ';');
+        }
     }
 
     public static function createTable(string $name, Callable $callback)
     {        
         $dbManipulator = self::getDbManipulator();
-        self::useTable($dbManipulator);
+        self::useDB($dbManipulator);
         $config = DB::getConfig(self::$connName);
-        $driver = new DbDriver($config['driver'],$config['dbname']);
+        $driver = new DbDriver($config['driver'],$config['dbname'] ?? null);
         $table = SchemaFactory::newTable($name, $driver);
         $callback($table);
         $sql = $table->generateSql(Table::CREATE_MODE);
@@ -32,14 +34,14 @@ class Schema
     public static function getTable(string $name):Table
     {
         $config = DB::getConfig(self::$connName);
-        $driver = new DbDriver($config['driver'],$config['dbname']);
+        $driver = new DbDriver($config['driver'],$config['dbname'] ?? null);
         return self::loadTableInfo($name, $driver);
     }
 
     public static function alterTable(Table $table)    
     {
         $dbManipulator = self::getDbManipulator();
-        self::useTable($dbManipulator);
+        self::useDB($dbManipulator);
         $sql = $table->generateSql(Table::ALTER_MODE);
         return $dbManipulator->exec($sql); 
     }
@@ -47,7 +49,7 @@ class Schema
     public static function dropTable(Table $table)    
     {
         $dbManipulator = self::getDbManipulator();
-        self::useTable($dbManipulator);
+        self::useDB($dbManipulator);
         $sql = $table->generateSql(Table::DROP_MODE);
         return $dbManipulator->exec($sql); 
     }
@@ -55,7 +57,7 @@ class Schema
     public static function dropTableIfExists(string $name)    
     {
         $dbManipulator = self::getDbManipulator();
-        self::useTable($dbManipulator);
+        self::useDB($dbManipulator);
         $sql = 'DROP TABLE IF EXISTS ' . $name;
         return $dbManipulator->exec($sql); 
     }

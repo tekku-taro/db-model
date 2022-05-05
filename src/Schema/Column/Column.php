@@ -1,8 +1,6 @@
 <?php
 namespace Taro\DBModel\Schema\Column;
 
-use Taro\DBModel\Exceptions\NotFoundException;
-use Taro\DBModel\Schema\Column\ColumnType\ColumnTypeMap;
 
 abstract class Column
 {
@@ -80,14 +78,6 @@ abstract class Column
 
     abstract public function type(string $typeName):self;
 
-    public function unsigned():self
-    {
-        $this->unsigned = true;
-        return $this;
-    }
-
-
-    abstract public function length(int $number):self;
 
     public function nullable(bool $mode = true):self
     {
@@ -118,18 +108,6 @@ abstract class Column
     public function default($defaultVal = null):self
     {
         $this->default = $defaultVal;
-        return $this;
-    }
-
-    public function after(string $columnName):self
-    {
-        $this->after = $columnName;
-        return $this;
-    }
-
-    public function before(string $columnName):self
-    {
-        $this->before = $columnName;        
         return $this;
     }
 

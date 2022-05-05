@@ -11,7 +11,7 @@ class DbDriver
     public const SQLITE = 'sqlite';
     public const POSTGRE_SQL = 'pgsql';
 
-    function __construct(string $name, string $dbName)
+    function __construct(string $name, string $dbName = null)
     {
         $this->name = $name;
         $this->dbName = $dbName;

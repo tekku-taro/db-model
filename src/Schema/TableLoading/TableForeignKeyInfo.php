@@ -9,4 +9,6 @@ class TableForeignKeyInfo
     public $columnName;
     public $referencedTable;
     public $referencedColumnName;    
+    public $onUpdate;    
+    public $onDelete;    
 }

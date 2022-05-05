@@ -6,6 +6,7 @@ use Taro\DBModel\Exceptions\NotFoundException;
 use Taro\DBModel\Query\DirectSql;
 use Taro\DBModel\Schema\DbDriver;
 use Taro\DBModel\Schema\MySql\MySqlTableFetcher;
+use Taro\DBModel\Schema\Sqlite\SqliteTableFetcher;
 
 abstract class TableFetcher
 {
@@ -42,10 +43,15 @@ abstract class TableFetcher
         switch ($driver->type) {
             case DbDriver::MY_SQL:
                 $fetcher = new MySqlTableFetcher($name, $driver, $dbManipulator);
+                $tableExistsSql = 'SHOW TABLES';
+                break;
+            case DbDriver::SQLITE:
+                $fetcher = new SqliteTableFetcher($name, $driver, $dbManipulator);
+                $tableExistsSql = 'SELECT name FROM sqlite_schema WHERE type="table" ORDER BY name;';
                 break;
         }
         
-        if(!$fetcher->tableExists($name)) {
+        if(!$fetcher->tableExists($name, $tableExistsSql)) {
             throw new NotFoundException($name . 'テーブルが見つかりません！');
         }
         $fetcher->setTableColumns();
@@ -53,14 +59,14 @@ abstract class TableFetcher
         $fetcher->setTableForeignKeys();
         $fetcher->setTableIndexes();
         $fetcher->setEncoding();
+        $fetcher->setExtra();
         return $fetcher;
     }
 
-    protected function tableExists(string $tableName):bool
+    protected function tableExists(string $tableName,string $tableExistsSql):bool
     {
         $tableNames = [];
-        $sql = 'SHOW TABLES';
-        $result = DirectSql::query()->prepareSql($sql)->runSql();
+        $result = DirectSql::query()->prepareSql($tableExistsSql)->runSql();
         if(is_array($result)) {
             foreach ($result as $key => $row) {
                $tableNames[] = array_values($row)[0];
@@ -70,12 +76,6 @@ abstract class TableFetcher
         return false;
     }
 
-    public function setEncoding()
-    {
-        $sql = $this->getTableEncodingSql();
-        $result = $this->execAndGetTableInfo($sql);
-        $this->encoding = $result[0]['character_set_name'];
-    }
 
     public function setTableColumns()
     {
@@ -103,6 +103,10 @@ abstract class TableFetcher
         $sql = $this->getTableIndexesSql();
         $result = $this->execAndGetTableInfo($sql);
         $this->hydrateIndexesInfo($result);
+    }
+
+    public function setExtra()
+    {
     }
 
 

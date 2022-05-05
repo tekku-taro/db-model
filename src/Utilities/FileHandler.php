@@ -13,6 +13,8 @@ class FileHandler
 
     public const CONFIG_PATH = __DIR__ . DS . '..' . DS .'Config' . DS .'Database.php';
 
+    public const SQLITE_PATH = __DIR__ . DS . '..' . DS . '..' . DS . 'database' . DS .'database.sqlite';
+
     public static function saveAs($filePath, $data): bool
     {
         return file_put_contents($filePath, $data);

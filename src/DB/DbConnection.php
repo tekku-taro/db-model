@@ -25,8 +25,12 @@ class DbConnection
 
         try {
             // $dbh = new PDO('mysql:host=localhost;dbname=test', $user, $pass);
-            $dsn = $config['driver'] . ':host=' . $config['host'] . ';dbname=' . $config['dbname'];
-            $dbh = new PDO($dsn, $config['user'], $config['password']);
+            if($config['driver'] === 'sqlite') {
+                $dbh = new PDO($config['dsn']);
+            } else {
+                $dsn = $config['driver'] . ':host=' . $config['host'] . ';dbname=' . $config['dbname'];
+                $dbh = new PDO($dsn, $config['user'], $config['password']);
+            }
             $dbh->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $dbh->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);

@@ -171,6 +171,7 @@ abstract class Table
 
     public function generateSql(string $mode):string
     {
+        $this->prepareForGenerate();
         $this->validate();
 
         switch ($mode) {
@@ -186,6 +187,11 @@ abstract class Table
         }
 
         return $sql;
+    }
+
+    protected function prepareForGenerate()
+    {
+
     }
 
     private function getCreateTableSql(string $mode):string
@@ -237,7 +243,7 @@ abstract class Table
      */
     abstract protected function compilePk(array $pkColumns):string;
 
-    private function getAlterTableSql(string $mode):string
+    protected function getAlterTableSql(string $mode):string
     {
         $sql = '';
         $baseSql = 'ALTER TABLE ' . $this->name . ' ';
@@ -291,7 +297,7 @@ abstract class Table
         return $sql;
     }
 
-    private function getPkColumns()
+    protected function getPkColumns()
     {
         $pkColumns = [];
         if(!isset($this->primaryKeyToBeDropped) && isset($this->original->primaryKey)) {
@@ -309,7 +315,7 @@ abstract class Table
         return array_unique($pkColumns);
     }
 
-    private function validate()
+    protected function validate()
     {
         $pkColumns = $this->getPkColumns();
         foreach ($this->columns as $column) {

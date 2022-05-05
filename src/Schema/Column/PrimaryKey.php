@@ -34,9 +34,13 @@ abstract class PrimaryKey
         return $this;
     }
 
-    public function addColumns(array $columns)
+    /**
+     * @param array<string> $columns
+     * @return void
+     */
+    public function addColumns(array $columnNames)
     {
-        $this->columnNames[] += $columns;
+        $this->columnNames[] = array_merge($this->columnNames, $columnNames);
     }
 
     abstract public function compile(): string;

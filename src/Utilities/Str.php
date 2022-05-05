@@ -3,6 +3,11 @@ namespace Taro\DBModel\Utilities;
 
 class Str
 {
+    public static function startWith(string $needle, string $haystack):bool
+    {
+        return strpos($haystack, $needle) === 0 ;
+    }
+
     public static function getShortClassName(string $classWithNamespace):string
     {
         return substr($classWithNamespace, strrpos($classWithNamespace, '\\') + 1);
