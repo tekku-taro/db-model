@@ -7,6 +7,7 @@ use Taro\DBModel\Schema\Column\Column;
 use Taro\DBModel\Schema\Column\ForeignKey;
 use Taro\DBModel\Schema\Column\Index;
 use Taro\DBModel\Schema\Column\PrimaryKey;
+use Taro\DBModel\Utilities\DataManager\ObjectList;
 
 abstract class Table
 {
@@ -163,12 +164,16 @@ abstract class Table
 
     public function generateSql(string $mode):string
     {
-        $this->prepareForGenerate();
+        $this->offsetDuplicates();
+
+        if($mode === self::ALTER_MODE) {
+            $this->prepareForGenerate();
+        }
         $this->validate();
 
         switch ($mode) {
             case self::CREATE_MODE:
-                $sql = $this->getCreateTableSql($mode);   
+                $sql = $this->getCreateTableAllSql($mode);   
                 break;
             case self::ALTER_MODE:
                 $sql = $this->getAlterTableSql($mode);
@@ -181,12 +186,59 @@ abstract class Table
         return $sql;
     }
 
+    protected function getCreateTableAllSql(string $mode):string
+    {
+        return $this->getCreateTableSql($mode);   
+    }
+
+    private function offsetDuplicates()
+    {
+        $droppingColumnNames = $this->getDroppingComponentNames($this->columns);
+
+        foreach ($this->columns as $idx => $column) {
+            if(in_array($column->name, $droppingColumnNames) && $column->action !== Column::DROP_ACTION) {
+                unset($this->columns[$idx]);
+            }
+        }
+        
+        $droppingFkNames = $this->getDroppingComponentNames($this->foreignKeys);
+
+        foreach ($this->foreignKeys as $idx => $foreignKey) {
+            if(in_array($foreignKey->name, $droppingFkNames) && $foreignKey->action !== ForeignKey::DROP_ACTION) {
+                unset($this->foreignKeys[$idx]);
+            }
+        }   
+        
+        $droppingIdxNames = $this->getDroppingComponentNames($this->indexes);
+
+        foreach ($this->indexes as $idx => $index) {
+            if(in_array($index->name, $droppingIdxNames) && $index->action !== Index::DROP_ACTION) {
+                unset($this->indexes[$idx]);
+            }
+        }
+    }
+
+    /**
+     * @param array<mixed> $components
+     * @param string $action
+     * @return array<string>
+     */
+    private function getDroppingComponentNames(array $components, string $action = 'DROP'):array
+    {
+        return array_map(function($component){
+            return $component->name;
+        }, array_filter($components, function($component) use($action){
+                return $component->action === $action;
+            })
+        );        
+    }
+
     protected function prepareForGenerate()
     {
 
     }
 
-    private function getCreateTableSql(string $mode):string
+    protected function getCreateTableSql(string $mode):string
     {
         $sql = 'CREATE TABLE ' . $this->name . ' ( ';
         $pkColumns = [];
@@ -289,6 +341,22 @@ abstract class Table
         return $sql;
     }
 
+
+    public function getRemainingColumnNames()
+    {
+        $addingColumns = [];
+        $droppingColumns = [];
+        foreach ($this->columns as $column) {
+            if($column->action === Column::ADD_ACTION) {
+                $addingColumns[] = $column->name;
+            }
+            if($column->action === Column::DROP_ACTION) {
+                $droppingColumns[] = $column->name;
+            }
+        }        
+        return array_diff($addingColumns, $droppingColumns);
+    }    
+    
     protected function getPkColumns()
     {
         $pkColumns = [];
@@ -306,6 +374,7 @@ abstract class Table
         }
         return array_unique($pkColumns);
     }
+
 
     protected function validate()
     {
@@ -347,5 +416,42 @@ abstract class Table
         if(!empty($data['encoding'])) {
             $this->encoding = $data['encoding'];
         }
+    }
+
+    public function __clone()
+    {
+        /** @var array<Column> */
+        $columns = [];
+        foreach ($this->columns as $column) {
+            $columns[] = clone $column;
+        }
+        $this->columns = $columns;
+        
+        if(isset($this->primaryKey)) {
+            $this->primaryKey = clone $this->primaryKey;
+        }
+        
+        if (isset($this->primaryKeyToBeDropped)) {
+            $this->primaryKeyToBeDropped = clone $this->primaryKeyToBeDropped;
+        }
+
+
+        /** @var array<ForeignKey> */
+        $foreignKeys = [];
+        foreach ($this->foreignKeys as $foreignKey) {
+            $foreignKeys[] = clone $foreignKey;
+        }
+        $this->foreignKeys = $foreignKeys;    
+        
+        /** @var array<Index> */
+        $indexes = [];
+        foreach ($this->indexes as $index) {
+            $indexes[] = clone $index;
+        }
+        $this->indexes = $indexes;
+
+        if(isset($this->original)) {
+            $this->original = clone $this->original;
+        }         
     }
 }

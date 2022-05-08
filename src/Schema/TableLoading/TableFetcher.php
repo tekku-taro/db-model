@@ -47,7 +47,7 @@ abstract class TableFetcher
                 break;
             case DbDriver::SQLITE:
                 $fetcher = new SqliteTableFetcher($name, $driver, $dbManipulator);
-                $tableExistsSql = 'SELECT name FROM sqlite_schema WHERE type="table" ORDER BY name;';
+                $tableExistsSql = 'SELECT name FROM sqlite_master WHERE type="table" ORDER BY name;';
                 break;
         }
         

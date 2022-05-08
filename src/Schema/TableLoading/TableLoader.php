@@ -98,7 +98,12 @@ class TableLoader
         foreach ($this->fetcher->tableForeignKeys as $row) {
             $foreignKey = SchemaFactory::newForeignKey($this->driver, $row->columnName, $row->tableName);
             $foreignKey->name($row->name)->references($row->referencedTable, $row->referencedColumnName);
-            
+            if(isset($row->onDelete)) {
+                $foreignKey->onDelete($row->onDelete);
+            }
+            if(isset($row->onUpdate)) {
+                $foreignKey->onUpdate($row->onUpdate);
+            }
             $this->foreignKeys[] = $foreignKey;            
         }
     }

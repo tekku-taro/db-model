@@ -88,12 +88,12 @@ class SqliteTableFetcher extends TableFetcher
     public function hydratePrimaryKeyInfo(array $resultSet):void
     {
         $data = [];
-        foreach ($resultSet as $columnName) {
+        foreach ($resultSet as $result) {
             $tableInfo = new TablePrimaryKeyInfo;
 
             $tableInfo->tableName = $this->name;
             $tableInfo->name = strtoupper($this->name) . '_PK';
-            $tableInfo->columnName = $columnName;
+            $tableInfo->columnName = $result['name'];
 
             $data[] = $tableInfo;
         }
@@ -117,8 +117,8 @@ class SqliteTableFetcher extends TableFetcher
             $tableInfo->columnName = $row['COLUMN_NAME'];
             $tableInfo->referencedColumnName = $row['REFERENCED_COLUMN_NAME'];
             $tableInfo->referencedTable = $row['REFERENCED_TABLE_NAME'];
-            $tableInfo->onUpdate = $row['ON_UPDATE'];
-            $tableInfo->onDelete = $row['ON_DELETE'];
+            $tableInfo->onUpdate = $row['ON_UPDATE'] ?? null;
+            $tableInfo->onDelete = $row['ON_DELETE'] ?? null;
 
             $data[] = $tableInfo;
         }
@@ -129,27 +129,30 @@ class SqliteTableFetcher extends TableFetcher
     private function parseForForeign(array $resultSet):array
     {
         $foreignInfos = [];
-        // 改行で文字列分離
-        $lines = explode(PHP_EOL, $resultSet[0]['sql']);
+        // カンマでsql分離
+        $lines = $this->splitSqlByComma($resultSet[0]['sql']);
         // 最初が CONSTRAINT で始まり、 FOREIGN KEY を含む要素を抽出
         $filtered = array_filter($lines, function(string $line) {
             return Str::startWith('CONSTRAINT', $line) && str_contains($line, 'FOREIGN KEY');
         });
         foreach ($filtered as $line) {
             // preg_match で、 name, foreign_key, referencingTable, column を取得
-            preg_match('/CONSTRAINT (.+) FOREIGN KEY \((.+)\) REFERENCES (.+) \((.+)\)/', $line, $matches);
-            $foreignInfo = [
-                'CONSTRAINT_NAME'=> $matches[1],
-                'COLUMN_NAME'=> $matches[2],
-                'REFERENCED_TABLE_NAME'=> $matches[3],
-                'REFERENCED_COLUMN_NAME'=> $matches[4],
-            ];
-            // ON DELETE と ON UPDATE をチェックして、指定値を取得
-            preg_match('/ON DELETE (\S+)/', $line, $matches);
-            $foreignInfo['ON_DELETE'] = $matches[1];
-            preg_match('/ON UPDATE (\S+)/', $line, $matches);
-            $foreignInfo['ON_UPDATE'] = $matches[1];
-            $foreignInfos[] = $foreignInfo;
+            if(preg_match('/CONSTRAINT (.+) FOREIGN KEY \((.+)\) REFERENCES (.+) \((.+)\)/', $line, $matches)) {
+                $foreignInfo = [
+                    'CONSTRAINT_NAME'=> trim($matches[1]),
+                    'COLUMN_NAME'=> trim($matches[2]),
+                    'REFERENCED_TABLE_NAME'=> trim($matches[3]),
+                    'REFERENCED_COLUMN_NAME'=> trim($matches[4]),
+                ];
+                // ON DELETE と ON UPDATE をチェックして、指定値を取得
+                if(preg_match('/ON DELETE (\S+)/', $line, $matches)) {
+                    $foreignInfo['ON_DELETE'] = strtoupper($matches[1]);
+                }
+                if(preg_match('/ON UPDATE (\S+)/', $line, $matches)) {
+                    $foreignInfo['ON_UPDATE'] = strtoupper($matches[1]);
+                }
+                $foreignInfos[] = $foreignInfo;
+            }
         }
         return $foreignInfos;
     }
@@ -192,7 +195,7 @@ class SqliteTableFetcher extends TableFetcher
             foreach ($columnNames as $columnName) {
                 $indexInfo = [
                     'INDEX_NAME'=> $row['name'],
-                    'COLUMN_NAME'=> $columnName,
+                    'COLUMN_NAME'=> trim($columnName),
                     'NON_UNIQUE'=> $nonUnique,
                 ];
                 $indexInfos[] = $indexInfo;                
@@ -203,16 +206,17 @@ class SqliteTableFetcher extends TableFetcher
 
     public function setExtra()
     {
+        $columnNames = [];
         // autoincrement の取得と設定
         $sql = $this->getCreateTableSql();
         $result = $this->execAndGetTableInfo($sql);
               
-        // 改行で文字列分離
-        $lines = explode(PHP_EOL, $result[0]['sql']);
+        // カンマでsql分離
+        $lines = $this->splitSqlByComma($result[0]['sql']);
 
         foreach ($lines as $line) {
             if (strpos($line, 'autoincrement') !== false) {
-                $columnNames[] = explode(' ', $line)[0];
+                $columnNames[] = array_filter(explode(' ', $line))[0];
             }
         }
 
@@ -221,5 +225,16 @@ class SqliteTableFetcher extends TableFetcher
                 $column->autoIncrement = true;
             }
         }
+    }
+
+    private function splitSqlByComma(string $sql):array
+    {
+        // CREATE TABLE test ( id INTEGER NOT NULL,content TEXT,status TEXT NOT NULL DEFAULT "good",user_id INTEGER NOT NULL,PRIMARY KEY  ( id ),CONSTRAINT fk_test_user_id_users_id FOREIGN KEY ( user_id ) REFERENCES users ( id ) ON DELETE CASCADE );        
+        if(preg_match('/^CREATE TABLE \w+ \((.+)\)$/', $sql, $matches)) {
+            return array_map(function($line) {
+                return trim($line);
+            }, explode(',', $matches[1]));
+        }
+        return [];
     }
 }

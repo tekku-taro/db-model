@@ -11,6 +11,12 @@ use Taro\DBModel\Schema\MySql\Column\MySqlForeignKey;
 use Taro\DBModel\Schema\MySql\Column\MySqlIndex;
 use Taro\DBModel\Schema\MySql\Column\MySqlPrimaryKey;
 use Taro\DBModel\Schema\MySql\MySqlTable;
+use Taro\DBModel\Schema\Sqlite\Column\ColumnType\SqliteColumnTypeMap;
+use Taro\DBModel\Schema\Sqlite\Column\SqliteColumn;
+use Taro\DBModel\Schema\Sqlite\Column\SqliteForeignKey;
+use Taro\DBModel\Schema\Sqlite\Column\SqliteIndex;
+use Taro\DBModel\Schema\Sqlite\Column\SqlitePrimaryKey;
+use Taro\DBModel\Schema\Sqlite\SqliteTable;
 
 class SchemaFactory
 {
@@ -19,6 +25,8 @@ class SchemaFactory
         switch ($driver->type) {
             case DbDriver::MY_SQL:
                 return new MySqlTable($name);
+            case DbDriver::SQLITE:
+                return new SqliteTable($name);
         }  
     }
 
@@ -28,6 +36,9 @@ class SchemaFactory
             case DbDriver::MY_SQL:
                 $type = MySqlColumnTypeMap::getTypeName($dbType);
                 return new MySqlColumn(Column::ADD_ACTION, $name, $type, $tableName);
+            case DbDriver::SQLITE:
+                $type = SqliteColumnTypeMap::getTypeName($dbType);
+                return new SqliteColumn(Column::ADD_ACTION, $name, $type, $tableName);
         }  
     }
 
@@ -42,6 +53,8 @@ class SchemaFactory
         switch ($driver->type) {
             case DbDriver::MY_SQL:
                 return new MySqlForeignKey(ForeignKey::ADD_ACTION, $columnName, $tableName);
+            case DbDriver::SQLITE:
+                return new SqliteForeignKey(ForeignKey::ADD_ACTION, $columnName, $tableName);
         }  
     }
 
@@ -55,6 +68,8 @@ class SchemaFactory
         switch ($driver->type) {
             case DbDriver::MY_SQL:
                 return new MySqlPrimaryKey(PrimaryKey::ADD_ACTION, $columnNames);
+            case DbDriver::SQLITE:
+                return new SqlitePrimaryKey(PrimaryKey::ADD_ACTION, $columnNames);
         }  
     }
 
@@ -69,6 +84,8 @@ class SchemaFactory
         switch ($driver->type) {
             case DbDriver::MY_SQL:
                 return new MySqlIndex(Index::ADD_ACTION, $columnNames, $tableName);
+            case DbDriver::SQLITE:
+                return new SqliteIndex(Index::ADD_ACTION, $columnNames, $tableName);
         }  
     }
 

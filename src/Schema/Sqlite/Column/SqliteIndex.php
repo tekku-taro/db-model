@@ -11,7 +11,7 @@ class SqliteIndex extends Index
     {
         switch ($this->action) {
             case Index::ADD_ACTION:
-                $sql = $this->generateClause();
+                $sql = 'CREATE ' . $this->generateClause();
                 break;
             case Index::DROP_ACTION:
                 if($this->mode === Table::CREATE_MODE) {

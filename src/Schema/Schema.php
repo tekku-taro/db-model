@@ -18,7 +18,7 @@ class Schema
         }
     }
 
-    public static function createTable(string $name, Callable $callback)
+    public static function createTable(string $name, Callable $callback):Table
     {        
         $dbManipulator = self::getDbManipulator();
         self::useDB($dbManipulator);
@@ -28,7 +28,8 @@ class Schema
         $callback($table);
         $sql = $table->generateSql(Table::CREATE_MODE);
     
-        return $dbManipulator->exec($sql);        
+        $dbManipulator->exec($sql);        
+        return self::getTable($table->name);
     }
 
     public static function getTable(string $name):Table
@@ -38,12 +39,13 @@ class Schema
         return self::loadTableInfo($name, $driver);
     }
 
-    public static function alterTable(Table $table)    
+    public static function alterTable(Table $table):Table   
     {
         $dbManipulator = self::getDbManipulator();
         self::useDB($dbManipulator);
         $sql = $table->generateSql(Table::ALTER_MODE);
-        return $dbManipulator->exec($sql); 
+        $dbManipulator->exec($sql); 
+        return self::getTable($table->name);
     }
 
     public static function dropTable(Table $table)    

@@ -30,9 +30,8 @@ class SqliteColumn extends Column
                 $sql = 'RENAME COLUMN ' . $this->name . ' TO ' . $this->rename;
                 break;
             case Column::DROP_ACTION:
-                if($this->mode === Table::CREATE_MODE) {
-                    throw new WrongSqlException('テーブル作成時は、カラム削除クエリは実行できません。');
-                }                
+                throw new WrongSqlException('sqlite3では、カラム削除クエリは実行できません。');
+         
                 $sql = 'DROP COLUMN ' . $this->name;
                 break;
         }

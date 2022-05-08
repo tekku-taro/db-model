@@ -25,7 +25,7 @@ class SqliteForeignKey extends ForeignKey
 
     protected function generateClause():string
     {
-        $clause = 'CONSTRAINT ' . $this->name . 'FOREIGN KEY ( ' . $this->columnName . ' ) ' .
+        $clause = 'CONSTRAINT ' . $this->name . ' FOREIGN KEY ( ' . $this->columnName . ' ) ' .
         'REFERENCES ' . $this->referencedTable  . ' ( ' . $this->referencedColumn . ' )';
         if(isset($this->onDelete)) {
             $clause .=  ' ' . 'ON DELETE ' . $this->onDelete;

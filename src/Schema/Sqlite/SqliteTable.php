@@ -17,13 +17,16 @@ class SqliteTable extends Table implements ISqliteTable
 {
 
     
-    /** @var Table|null */
-    public $createTableForUpdate;
+    /** @var SqliteTable|null */
+    public $createTableForUpdate = null;
 
-    private function getCreateTableForUpdate():Table
+    private function getCreateTableForUpdate():SqliteTable
     {
+        if($this->original === null) {
+            return null;
+        }
         if($this->createTableForUpdate === null) {
-            $this->createTableForUpdate = unserialize(serialize($this->original));
+            $this->createTableForUpdate = clone $this->original;
         }
         return $this->createTableForUpdate;
     }
@@ -38,12 +41,32 @@ class SqliteTable extends Table implements ISqliteTable
 
     public function changeColumn(string $name,string $newName = null):SqliteColumn 
     {
-        $column = $this->fetchOriginalColumn($name, Column::CHANGE_ACTION);
+        // create table で更新カラムを追加する
+        $column = $this->fetchOriginalColumn($name, Column::ADD_ACTION);
         $createTableForUpdate = $this->getCreateTableForUpdate();
-        $createTableForUpdate->columns[] = $column;
+        $createTableForUpdate->replaceColumn($column);
         return $column;
     }
 
+    private function replaceColumn(SqliteColumn $replacingColumn)
+    {
+        foreach ($this->columns as $idx => $column) {
+            if($column->name === $replacingColumn->name) {
+                $this->columns[$idx] = $replacingColumn;
+            }
+        } 
+
+    }
+
+    private function removeColumn(SqliteColumn $replacingColumn)
+    {
+        foreach ($this->columns as $idx => $column) {
+            if($column->name === $replacingColumn->name) {
+                unset($this->columns[$idx]);
+            }
+        } 
+
+    }
 
     public function dropColumn(string $name)    
     {
@@ -77,15 +100,13 @@ class SqliteTable extends Table implements ISqliteTable
     public function dropForeign(string $name)    
     {
         $original = $this->original->getForeign($name);
-        $foreignKey = $this->fetchOriginalForeign($original, ForeignKey::DROP_ACTION);
-        $this->dropIndex($foreignKey->name);
+        $this->fetchOriginalForeign($original, ForeignKey::DROP_ACTION);
     }
 
     public function dropForeignKeyByColumn(string $column)    
     {
         $original = $this->original->getForeignByColumn($column);
-        $foreignKey = $this->fetchOriginalForeign($original, ForeignKey::DROP_ACTION);
-        $this->dropIndex($foreignKey->name);
+        $this->fetchOriginalForeign($original, ForeignKey::DROP_ACTION);
     }
 
     private function fetchOriginalForeign(ForeignKey $original, string $action):SqliteForeignKey
@@ -129,6 +150,14 @@ class SqliteTable extends Table implements ISqliteTable
     }
 
 
+    public function getOrCreatePrimaryKey()
+    {
+        if(!isset($this->primaryKey)) {
+            $this->primaryKey = new SqlitePrimaryKey(PrimaryKey::ADD_ACTION,[]);
+        }
+        return $this->primaryKey;
+    }    
+
     public function dropPrimaryKey()    
     {
         $original = $this->original->getPrimaryKey();
@@ -161,23 +190,105 @@ class SqliteTable extends Table implements ISqliteTable
         return $this->primaryKey->compile();
     }    
 
+    protected function getCreateTableAllSql(string $mode):string
+    {
+        return $this->getCreateTableSql($mode) . $this->getIndexSql($mode);   
+    }
+
+    protected function getCreateTableSql(string $mode):string
+    {
+        $createSql = 'CREATE TABLE ' . $this->name . ' ( ';
+
+        $pkColumns = [];
+        $columnSql = [];
+        $foreignSql = [];
+        foreach ($this->columns as $column) {
+            $column->mode($mode);
+            $columnSql[] = $column->compile();
+            if($column->isPk) {
+                $pkColumns[] = $column->name;
+            }
+        }
+        if(!empty($columnSql)) {
+            $createSql .= implode(',', $columnSql);
+        }
+
+
+        if(isset($this->primaryKey) || !empty($pkColumns)) {
+            $createSql .= ',' .  $this->compilePk($pkColumns); 
+        }
+
+        foreach ($this->foreignKeys as $foreignKey) {
+            if($foreignKey->action === ForeignKey::ADD_ACTION) {
+                $foreignKey->mode($mode);
+                $foreignSql[] = $foreignKey->compile();
+            }
+        }
+        if(!empty($foreignSql)) {
+            $createSql .= ',' . implode(',', $foreignSql);
+        }
+
+
+        $createSql .= ' );';    
+        
+        return $createSql;
+    }
+
+    private function getIndexSql(string $mode)
+    {
+        $indexSql = '';
+        foreach ($this->indexes as $index) {
+            $index->mode($mode);
+            $indexSql .= $index->compile() . ';';
+        }        
+        
+        return $indexSql;        
+    }
+
     protected function prepareForGenerate()
     {
         foreach ($this->foreignKeys as $foreignKey) {
-            $this->createTableForUpdate->foreignKeys[] = $foreignKey;
-        }
-        
-        $pkColumns = array_filter(array_map(function(Column $column){
-            if($column->isPk) {
-                return $column->name;
+            $this->getCreateTableForUpdate()->foreignKeys[] = $foreignKey;
+            if($foreignKey->action === ForeignKey::ADD_ACTION) {
+                foreach ($this->columns as $idx => $column) {
+                    if($column->action === Column::ADD_ACTION && $foreignKey->columnName === $column->name) {
+                        throw new WrongSqlException('sqlite3で外部キーを追加する場合は、先に対象カラムを作成してください。同時に作成はできません。');
+                    }
+                }
             }
-        }, $this->columns));
+        }
+        $pkColumnNames = [];
+        $removingColumnNames = [];
+        foreach ($this->columns as $idx => $column) {
+            if($column->isPk) {
+                $pkColumnNames[] = $column->name;
+            }     
+            if ($column->action === Column::DROP_ACTION) {
+                $removingColumnNames[] = $column->name;
+                $this->getCreateTableForUpdate()->removeColumn($column);
+                unset($this->columns[$idx]);
+            }
+        }
+
+        // sqlitetable, createTableForUpdate のインデックスのうち、削除したカラム対象のものを除く
+        if(!empty($removingColumnNames)) {
+            foreach ($this->getCreateTableForUpdate()->indexes as $idx => $index) {
+                if(!empty(array_intersect($removingColumnNames, $index->columnNames))) {
+                    unset($this->getCreateTableForUpdate()->indexes[$idx]);
+                }
+            }
+            foreach ($this->indexes as $idx => $index) {
+                if(!empty(array_intersect($removingColumnNames, $index->columnNames))) {
+                    unset($this->indexes[$idx]);
+                }
+            }
+        }
 
         if(!empty($pkColumns)) {
-            $this->primaryKey->addColumns($pkColumns);
+            $this->getOrCreatePrimaryKey()->addColumns($pkColumnNames);
         }
         if(isset($this->primaryKey)) {
-            $this->createTableForUpdate->primaryKey = $this->primaryKey;
+            $this->getCreateTableForUpdate()->primaryKey = $this->primaryKey;
         }
     }
 
@@ -185,17 +296,18 @@ class SqliteTable extends Table implements ISqliteTable
     {
         $sql = '';
         if($this->createTableForUpdate !== null) {
-            $sql = '
-            PRAGMA foreign_keys=off;
-            BEGIN TRANSACTION;            
-            ALTER TABLE ' . $this->createTableForUpdate->name . ' RENAME TO ___old_' . $this->createTableForUpdate->name . ';
-            ';
+            $sql = 'PRAGMA foreign_keys=off;'.
+            'BEGIN TRANSACTION;'.
+            'ALTER TABLE ' . $this->createTableForUpdate->name . ' RENAME TO ___old_' . $this->createTableForUpdate->name . ';';
 
-            $sql .= $this->getCreateTableSqlForUpdate();
-            $sql .= '
-            INSERT INTO ' . $this->createTableForUpdate->name . 
-            ' SELECT * FROM ___old_' . $this->createTableForUpdate->name . ';
-            ';
+            $sql .= $this->createTableForUpdate->getCreateTableSql(Table::CREATE_MODE);
+            
+            $columns = $this->createTableForUpdate->getRemainingColumnNames();
+            $sql .= 'INSERT INTO ' . $this->createTableForUpdate->name . 
+            ' SELECT ' . implode(',', $columns) . ' FROM ___old_' . $this->createTableForUpdate->name . ';' .
+            'DROP TABLE ___old_' . $this->createTableForUpdate->name . ';';
+        
+            $sql .= $this->createTableForUpdate->getIndexSql(Table::CREATE_MODE);
         }
 
 
@@ -224,20 +336,13 @@ class SqliteTable extends Table implements ISqliteTable
        
 
         if($this->createTableForUpdate !== null) {
-            $sql = '
-            DROP TABLE ___old_' . $this->createTableForUpdate->name . ';
-            COMMIT;            
-            PRAGMA foreign_keys=on;            
-            ';
+            $sql .= 'COMMIT;'.
+            'PRAGMA foreign_keys=on;';
         }
 
         return $sql;
     }
-    
-    private function getCreateTableSqlForUpdate():string
-    {
-        return $this->createTableForUpdate->generateSql(Table::CREATE_MODE);
-    }
+
 
     protected function validate()
     {
@@ -250,6 +355,7 @@ class SqliteTable extends Table implements ISqliteTable
         }
     } 
     
+
 
     protected function getPkColumns()
     {
