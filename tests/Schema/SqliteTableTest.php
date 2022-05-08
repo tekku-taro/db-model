@@ -72,7 +72,7 @@ class SqliteTableTest extends TestCase
         $table->dropIndex('idx_test_content_status');
         $table->addIndex('status')->name('INDEX1');        
         $table->dropColumn('content');
-        // TODO カラム削除は、新規テーブル作成で行う
+        
         $sql = $table->generateSql(Table::ALTER_MODE);
         var_export($sql);
         
@@ -145,7 +145,7 @@ class SqliteTableTest extends TestCase
         $sql = $table->generateSql(Table::ALTER_MODE);
         var_export($sql);
         
-        $expected = '';
+        $expected = 'PRAGMA foreign_keys=off;BEGIN TRANSACTION;ALTER TABLE test RENAME TO ___old_test;CREATE TABLE test ( id INTEGER NOT NULL,task TEXT NOT NULL,PRIMARY KEY  ( task ) );INSERT INTO test SELECT id,task FROM ___old_test;DROP TABLE ___old_test;COMMIT;PRAGMA foreign_keys=on;';
 
         $this->assertEquals($expected, $sql);     
     }

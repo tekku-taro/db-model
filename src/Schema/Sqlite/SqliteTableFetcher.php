@@ -183,6 +183,9 @@ class SqliteTableFetcher extends TableFetcher
     {
         $indexInfos = [];
         foreach ($resultSet as $row) {
+            if(!isset($row['sql'])) {
+                continue;
+            }
             if(Str::startWith('CREATE UNIQUE INDEX', $row['sql'])) {
                 $nonUnique = false;
             } else {
@@ -227,6 +230,10 @@ class SqliteTableFetcher extends TableFetcher
         }
     }
 
+    /**
+     * @param string $sql
+     * @return array<string>
+     */
     private function splitSqlByComma(string $sql):array
     {
         // CREATE TABLE test ( id INTEGER NOT NULL,content TEXT,status TEXT NOT NULL DEFAULT "good",user_id INTEGER NOT NULL,PRIMARY KEY  ( id ),CONSTRAINT fk_test_user_id_users_id FOREIGN KEY ( user_id ) REFERENCES users ( id ) ON DELETE CASCADE );        
