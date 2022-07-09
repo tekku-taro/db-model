@@ -10,6 +10,7 @@ abstract class PrimaryKey
     /** @var string $mode create/alter/drop  */
     protected $mode;
 
+    public $tableName;
 
     /** @var string add/drop  */
     public $action;
@@ -22,10 +23,11 @@ abstract class PrimaryKey
     public $original;  
 
 
-    function __construct(string $action, $columnNames = [])
+    function __construct(string $action, $columnNames = [], string $tableName)
     {
         $this->action = $action;
         $this->columnNames = $columnNames;
+        $this->tableName = $tableName;
     }
     
     public function mode(string $mode):self

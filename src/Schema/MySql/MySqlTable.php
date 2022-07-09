@@ -112,7 +112,7 @@ class MySqlTable extends Table implements IMySqlTable
 
     public function addPrimaryKey(...$columns)
     {
-        $primaryKey = new MySqlPrimaryKey(PrimaryKey::ADD_ACTION, $columns);
+        $primaryKey = new MySqlPrimaryKey(PrimaryKey::ADD_ACTION, $columns, $this->name);
         $this->primaryKey = $primaryKey;
     }
 
@@ -120,7 +120,7 @@ class MySqlTable extends Table implements IMySqlTable
     public function dropPrimaryKey()    
     {
         $original = $this->original->getPrimaryKey();
-        $primaryKey = new MySqlPrimaryKey(PrimaryKey::DROP_ACTION);
+        $primaryKey = new MySqlPrimaryKey(PrimaryKey::DROP_ACTION, [], $this->name);
         $primaryKey->original = $original;
         $this->primaryKeyToBeDropped = $primaryKey;
     }
@@ -140,7 +140,7 @@ class MySqlTable extends Table implements IMySqlTable
     {
         if(!empty($columns)) {
             if($this->primaryKey === null) {
-                $this->primaryKey = new MySqlPrimaryKey(PrimaryKey::ADD_ACTION, $columns);
+                $this->primaryKey = new MySqlPrimaryKey(PrimaryKey::ADD_ACTION, $columns, $this->name);
             } else {
                 $this->primaryKey->addColumns($columns);
             }

@@ -145,7 +145,7 @@ class SqliteTable extends Table implements ISqliteTable
 
     public function addPrimaryKey(...$columns)
     {
-        $primaryKey = new SqlitePrimaryKey(PrimaryKey::ADD_ACTION, $columns);
+        $primaryKey = new SqlitePrimaryKey(PrimaryKey::ADD_ACTION, $columns, $this->name);
         $this->primaryKey = $primaryKey;
     }
 
@@ -153,7 +153,7 @@ class SqliteTable extends Table implements ISqliteTable
     public function getOrCreatePrimaryKey()
     {
         if(!isset($this->primaryKey)) {
-            $this->primaryKey = new SqlitePrimaryKey(PrimaryKey::ADD_ACTION,[]);
+            $this->primaryKey = new SqlitePrimaryKey(PrimaryKey::ADD_ACTION,[], $this->name);
         }
         return $this->primaryKey;
     }    
@@ -161,7 +161,7 @@ class SqliteTable extends Table implements ISqliteTable
     public function dropPrimaryKey()    
     {
         $original = $this->original->getPrimaryKey();
-        $primaryKey = new SqlitePrimaryKey(PrimaryKey::DROP_ACTION);
+        $primaryKey = new SqlitePrimaryKey(PrimaryKey::DROP_ACTION, [], $this->name);
         $primaryKey->original = $original;
         $createTableForUpdate = $this->getCreateTableForUpdate();
         $createTableForUpdate->primaryKey = null;
@@ -182,7 +182,7 @@ class SqliteTable extends Table implements ISqliteTable
     {
         if(!empty($columns)) {
             if($this->primaryKey === null) {
-                $this->primaryKey = new SqlitePrimaryKey(PrimaryKey::ADD_ACTION, $columns);
+                $this->primaryKey = new SqlitePrimaryKey(PrimaryKey::ADD_ACTION, $columns, $this->name);
             } else {
                 $this->primaryKey->addColumns($columns);
             }
