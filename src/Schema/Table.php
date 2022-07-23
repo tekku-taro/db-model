@@ -183,6 +183,9 @@ abstract class Table
                 break;
         }
 
+        $sql = $this->addAdditonalSqls($mode, $sql);
+
+
         return $sql;
     }
 
@@ -231,6 +234,11 @@ abstract class Table
                 return $component->action === $action;
             })
         );        
+    }
+
+    protected function addAdditonalSqls(string $mode, string $sql):string
+    {
+        return $sql;
     }
 
     protected function prepareForGenerate()
@@ -329,7 +337,10 @@ abstract class Table
         foreach ($this->indexes as $index) {
             if ($index->action === Index::ADD_ACTION) {
                 $index->mode($mode);
-                $sql .= $baseSql . $index->compile() . ';';
+                $indexSql = $index->compile();
+                if($indexSql !== null) {
+                    $sql .= $baseSql . $indexSql . ';';
+                }
             }
         }
 

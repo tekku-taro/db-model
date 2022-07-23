@@ -23,8 +23,14 @@ class PostgreSqlIndex extends Index
         return $sql;
     }
 
+    public function createIndex()
+    {
+        if (!$this->unique) {
+            return 'CREATE INDEX ' . $this->name . ' ( ' . implode(',', $this->columnNames)  . ' );';
+        }
+    }
     
-    protected function generateClause():string
+    protected function generateClause()
     {
         if($this->unique) {
             $sql = 'CONSTRAINT ' . $this->name . 'UNIQUE ( ' . implode(',', $this->columnNames)  . ' )';
@@ -32,9 +38,7 @@ class PostgreSqlIndex extends Index
                 $sql = 'ADD ' . $sql;
             }
             return $sql;      
-        } else {
-            return 'CREATE INDEX ' . $this->name . ' ( ' . implode(',', $this->columnNames)  . ' )';
-        }        
+        }     
     }
 
 }
