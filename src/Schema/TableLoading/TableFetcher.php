@@ -6,6 +6,7 @@ use Taro\DBModel\Exceptions\NotFoundException;
 use Taro\DBModel\Query\DirectSql;
 use Taro\DBModel\Schema\DbDriver;
 use Taro\DBModel\Schema\MySql\MySqlTableFetcher;
+use Taro\DBModel\Schema\PostgreSql\PostgreSqlTableFetcher;
 use Taro\DBModel\Schema\Sqlite\SqliteTableFetcher;
 
 abstract class TableFetcher
@@ -44,6 +45,12 @@ abstract class TableFetcher
             case DbDriver::MY_SQL:
                 $fetcher = new MySqlTableFetcher($name, $driver, $dbManipulator);
                 $tableExistsSql = 'SHOW TABLES';
+                break;
+            case DbDriver::POSTGRE_SQL:
+                $fetcher = new PostgreSqlTableFetcher($name, $driver, $dbManipulator);
+                $tableExistsSql = "select table_name from information_schema.tables
+                where table_schema not in ('information_schema', 'pg_catalog') and
+                table_type = 'BASE TABLE'";
                 break;
             case DbDriver::SQLITE:
                 $fetcher = new SqliteTableFetcher($name, $driver, $dbManipulator);

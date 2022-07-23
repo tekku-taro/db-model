@@ -115,7 +115,7 @@ class TableLoader
             $columnNames[] = $row->columnName;
         }
 
-        $this->primaryKey = SchemaFactory::newPrimaryKey($this->driver, $columnNames);  
+        $this->primaryKey = SchemaFactory::newPrimaryKey($this->driver, $columnNames, $this->name);  
     }
 
     private function readIndexes()    
