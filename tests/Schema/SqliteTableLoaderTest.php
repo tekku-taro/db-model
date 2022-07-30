@@ -43,7 +43,7 @@ class SqliteTableLoaderTest extends TestCase
     public function setUp():void
     {
         $config = DB::getConfig('sqlite');
-        $this->driver = new DbDriver($config['driver']);        
+        $this->driver = new DbDriver($config);        
     }
 
 

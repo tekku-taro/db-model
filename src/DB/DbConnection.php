@@ -24,11 +24,13 @@ class DbConnection
         }
 
         try {
-            // $dbh = new PDO('mysql:host=localhost;dbname=test', $user, $pass);
+            // $dbh = new PDO('pgsql:host=localhost;dbname=taskdb port=5433', $user, $pass);
             if($config['driver'] === 'sqlite') {
                 $dbh = new PDO($config['dsn']);
             } else {
-                $dsn = $config['driver'] . ':host=' . $config['host'] . ';dbname=' . $config['dbname'];
+                $dsn = $config['driver'] . ':host=' . $config['host'];
+                $dsn .= $config['dbname'] ? ';dbname=' . $config['dbname'] : '';
+                $dsn .= $config['port'] ? ';port=' . $config['port'] : '';
                 $dbh = new PDO($dsn, $config['user'], $config['password']);
             }
             $dbh->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);

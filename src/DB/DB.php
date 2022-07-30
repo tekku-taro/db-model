@@ -2,9 +2,9 @@
 namespace Taro\DBModel\DB;
 
 use PDO;
-use PhpParser\Node\Expr\FuncCall;
 use Taro\DBModel\Exceptions\DatabaseConnectionException;
 use Taro\DBModel\Exceptions\NotFoundException;
+use Taro\DBModel\Schema\DbDriver;
 use Taro\DBModel\Utilities\FileHandler;
 
 class DB
@@ -29,6 +29,12 @@ class DB
         $this->config = $config;
         $this->dbh = $dbh;
         self::setConfig($connName, $config);
+    }
+
+    public static function getDriver(string $connName = null)
+    {
+        $config = self::getConfig($connName);
+        return new DbDriver($config);
     }
 
     private static function getDbhOrThrow(string $connName):PDO
@@ -90,9 +96,15 @@ class DB
         return self::getConfig(self::$globalDb->connName);
     }
 
-    public static function start(string $connName = null, bool $asGlobal = false): self
+    public static function start(string $connName = null, bool $asGlobal = false, bool $noDB = false, $name = null): self
     {
         ['config'=>$config, 'connName'=>$connName] = self::loadConfig($connName);
+        if($noDB) {
+            $config['dbname'] = null;
+        }
+        if(isset($name)) {
+            $connName = $name;
+        }
         $dbh = DbConnection::open($connName, $config);
         $db = new self($connName, $config, $dbh);
         if($asGlobal) {

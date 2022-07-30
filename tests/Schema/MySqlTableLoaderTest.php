@@ -43,7 +43,7 @@ class MySqlTableLoaderTest extends TestCase
     public function setUp():void
     {
         $config = DB::getConfig('mysql');
-        $this->driver = new DbDriver($config['driver'],$config['dbname']);        
+        $this->driver = new DbDriver($config);        
     }
 
 

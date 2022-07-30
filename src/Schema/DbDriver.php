@@ -6,15 +6,17 @@ class DbDriver
 {
     public $name;
     public $dbName;
+    public $owner;
     public $type;
     public const MY_SQL = 'mysql';
     public const SQLITE = 'sqlite';
     public const POSTGRE_SQL = 'pgsql';
 
-    function __construct(string $name, string $dbName = null)
+    function __construct(array $config)
     {
-        $this->name = $name;
-        $this->dbName = $dbName;
+        $this->name = $config['driver'];
+        $this->dbName = $config['dbname'] ?? null;
+        $this->owner = $config['owner'] ?? null;
         $this->setType();
     }
 
