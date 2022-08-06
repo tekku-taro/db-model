@@ -54,7 +54,7 @@ abstract class Index
         return $this;
     }
 
-    abstract public function compile(): string;
+    abstract public function compile();
 
 
     protected function generateIdkName(): string    

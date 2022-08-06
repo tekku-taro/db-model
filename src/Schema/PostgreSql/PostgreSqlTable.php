@@ -66,15 +66,13 @@ class PostgreSqlTable extends Table implements IPostgreSqlTable
     public function dropForeign(string $name)    
     {
         $original = $this->original->getForeign($name);
-        $foreignKey = $this->fetchOriginalForeign($original, ForeignKey::DROP_ACTION);
-        $this->dropIndex($foreignKey->name);
+        $this->fetchOriginalForeign($original, ForeignKey::DROP_ACTION);
     }
 
     public function dropForeignKeyByColumn(string $column)    
     {
         $original = $this->original->getForeignByColumn($column);
-        $foreignKey = $this->fetchOriginalForeign($original, ForeignKey::DROP_ACTION);
-        $this->dropIndex($foreignKey->name);
+        $this->fetchOriginalForeign($original, ForeignKey::DROP_ACTION);
     }
 
     private function fetchOriginalForeign(ForeignKey $original, string $action):PostgreSqlForeignKey

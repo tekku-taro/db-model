@@ -274,7 +274,10 @@ abstract class Table
 
         foreach ($this->indexes as $index) {
             $index->mode($mode);
-            $indexSql[] = $index->compile();
+            $tempSql = $index->compile();
+            if($tempSql !== null) {
+                $indexSql[] = $tempSql;
+            }
         }
         if(!empty($indexSql)) {
             $sql .= ',' . implode(',', $indexSql);

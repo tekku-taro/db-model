@@ -57,7 +57,10 @@ class TableLoader
     {
         foreach ($this->fetcher->tableColumns as $columnInfo) {
             $column = SchemaFactory::newColumn($this->driver, $columnInfo->name, $columnInfo->dataType, $columnInfo->tableName);
-            $column->nullable($columnInfo->isNullable)->default($columnInfo->default);
+            $column->nullable($columnInfo->isNullable);
+            if(isset($columnInfo->default)) {
+                $column->default($columnInfo->default);
+            }
             if($columnInfo->autoIncrement) {
                 $column->autoIncrement = true;
             }

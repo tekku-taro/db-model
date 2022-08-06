@@ -18,7 +18,8 @@ return [
             'host'=>'localhost',
             'user'=>'postgres',
             'password'=>'password',
-            'dbname'=>'tasksdb',
+            'dbname'=>'MyDB',
+            'schema'=>'public',
             'port'=>5433,
         ],
         'sqlite'=>[

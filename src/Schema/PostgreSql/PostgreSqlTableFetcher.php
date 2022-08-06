@@ -26,7 +26,7 @@ class PostgreSqlTableFetcher extends TableFetcher
         pgi.indisunique as IS_UNIQUE,
         t.relname as TABLE_NAME,
         i.relname as INDEX_NAME,
-        a.* as COLUMN_NAME
+        a.attname as COLUMN_NAME
         from
             pg_index pgi,
             pg_class t,
@@ -48,14 +48,14 @@ class PostgreSqlTableFetcher extends TableFetcher
 
     public function getTablePrimaryKeySql():string
     {
-        return 'SELECT CONSTRAINT_NAME,TABLE_SCHEMA,TABLE_NAME, k.COLUMN_NAME
+        return "SELECT CONSTRAINT_NAME,TABLE_SCHEMA,TABLE_NAME, k.COLUMN_NAME
         FROM information_schema.table_constraints t
         JOIN information_schema.key_column_usage k
         USING(CONSTRAINT_NAME,TABLE_SCHEMA,TABLE_NAME)
-        WHERE t.CONSTRAINT_TYPE="PRIMARY KEY"
-        AND t.TABLE_NAME = "'.$this->name.'"
-        AND t.TABLE_CATALOG = "'.$this->driver->dbName.'"
-        ;';
+        WHERE t.CONSTRAINT_TYPE='PRIMARY KEY'
+        AND t.TABLE_NAME = '".$this->name."'
+        AND t.TABLE_CATALOG = '".$this->driver->dbName."'
+        ;";
     }
 
     public function getTableEncodingSql():string
@@ -68,6 +68,7 @@ class PostgreSqlTableFetcher extends TableFetcher
     public function getTableForiegnKeySql():string
     {
         return "SELECT tc.TABLE_NAME, tc.CONSTRAINT_TYPE, tc.CONSTRAINT_NAME,
+        k.column_name,
         ccu.table_name as REFERENCED_TABLE_NAME,
         ccu.column_name as REFERENCED_COLUMN_NAME
         FROM information_schema.TABLE_CONSTRAINTS tc 
@@ -81,9 +82,9 @@ class PostgreSqlTableFetcher extends TableFetcher
         AND rc.unique_constraint_schema = ccu.constraint_schema
         AND rc.unique_constraint_name = ccu.constraint_name		
         WHERE 
-        tc.CONSTRAINT_TYPE='FOREIGN KEY' AND
-         tc.TABLE_NAME = '.$this->name.'
-         AND tc.TABLE_CATALOG = '.$this->driver->dbName.'"
+        tc.CONSTRAINT_TYPE='FOREIGN KEY' 
+        AND tc.TABLE_NAME = '".$this->name."'
+        AND tc.TABLE_CATALOG = '".$this->driver->dbName."';"
         ;
     }
 
@@ -105,14 +106,14 @@ class PostgreSqlTableFetcher extends TableFetcher
         foreach ($resultSet as $row) {
             $tableColumnInfo = new TableColumnInfo;
 
-            $tableColumnInfo->tableName = $row['TABLE_NAME'];
-            $tableColumnInfo->name = $row['COLUMN_NAME'];
-            $tableColumnInfo->dataType = $row['DATA_TYPE'];
-            $tableColumnInfo->numericPrecision = $row['NUMERIC_PRECISION'];
-            $tableColumnInfo->maxLength = $row['CHARACTER_MAXIMUM_LENGTH'];
-            $tableColumnInfo->isNullable = ($row['IS_NULLABLE'] === 'YES')? true:false;
-            $tableColumnInfo->default = $this->getDefaultVal($row['COLUMN_DEFAULT']);
-            $tableColumnInfo->autoIncrement = $this->checkIfExists($row['COLUMN_DEFAULT'], 'nextval');
+            $tableColumnInfo->tableName = $row['table_name'];
+            $tableColumnInfo->name = $row['column_name'];
+            $tableColumnInfo->dataType = $row['data_type'];
+            $tableColumnInfo->numericPrecision = $row['numeric_precision'];
+            $tableColumnInfo->maxLength = $row['character_maximum_length'];
+            $tableColumnInfo->isNullable = ($row['is_nullable'] === 'YES')? true:false;
+            $tableColumnInfo->default = $this->getDefaultVal($row['column_default']);
+            $tableColumnInfo->autoIncrement = $this->checkIfExists($row['column_default'], 'nextval');
             $data[] = $tableColumnInfo;
         }
 
@@ -122,6 +123,9 @@ class PostgreSqlTableFetcher extends TableFetcher
     private function getDefaultVal($rawValue)
     {
         if($this->checkIfExists($rawValue, 'null')) {
+            return null;
+        }
+        if($rawValue === null) {
             return null;
         }
         if(is_numeric($rawValue)) {
@@ -145,9 +149,9 @@ class PostgreSqlTableFetcher extends TableFetcher
         foreach ($resultSet as $row) {
             $tableInfo = new TablePrimaryKeyInfo;
 
-            $tableInfo->tableName = $row['TABLE_NAME'];
-            $tableInfo->name = $row['CONSTRAINT_NAME'];
-            $tableInfo->columnName = $row['COLUMN_NAME'];
+            $tableInfo->tableName = $row['table_name'];
+            $tableInfo->name = $row['constraint_name'];
+            $tableInfo->columnName = $row['column_name'];
 
             $data[] = $tableInfo;
         }
@@ -164,11 +168,11 @@ class PostgreSqlTableFetcher extends TableFetcher
         $data = [];
         foreach ($resultSet as $row) {
             $tableInfo = new TableForeignKeyInfo;
-            $tableInfo->tableName = $row['TABLE_NAME'];
-            $tableInfo->name = $row['CONSTRAINT_NAME'];
-            $tableInfo->columnName = $row['COLUMN_NAME'];
-            $tableInfo->referencedColumnName = $row['REFERENCED_COLUMN_NAME'];
-            $tableInfo->referencedTable = $row['REFERENCED_TABLE_NAME'];
+            $tableInfo->tableName = $row['table_name'];
+            $tableInfo->name = $row['constraint_name'];
+            $tableInfo->columnName = $row['column_name'];
+            $tableInfo->referencedColumnName = $row['referenced_column_name'];
+            $tableInfo->referencedTable = $row['referenced_table_name'];
 
             $data[] = $tableInfo;
         }
@@ -186,10 +190,10 @@ class PostgreSqlTableFetcher extends TableFetcher
 
         foreach ($resultSet as $row) {
             $tableInfo = new TableIndexInfo;
-            $tableInfo->tableName = $row['TABLE_NAME'];
-            $tableInfo->name = $row['INDEX_NAME'];
-            $tableInfo->columnName = $row['COLUMN_NAME'];
-            $tableInfo->isUnique = $row['IS_UNIQUE'];
+            $tableInfo->tableName = $row['table_name'];
+            $tableInfo->name = $row['index_name'];
+            $tableInfo->columnName = $row['column_name'];
+            $tableInfo->isUnique = $row['is_unique'];
 
             $data[] = $tableInfo;
         }

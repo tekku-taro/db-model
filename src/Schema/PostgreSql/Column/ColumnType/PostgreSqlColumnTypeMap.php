@@ -19,6 +19,7 @@ class PostgreSqlColumnTypeMap extends ColumnTypeMap
         'char' => ['type'=>'CHAR','length'=> true],
         'varchar' => ['type'=>'VARCHAR','length'=> true],
         'string' => ['type'=>'VARCHAR','length'=> true],
+        'string' => ['type'=>'CHARACTER VARYING','length'=> true],
         'text' => ['type'=>'TEXT','length'=> false],
         'blob' => ['type'=>'bytea','length'=> false],
         'date' => ['type'=>'DATE','length'=> false],

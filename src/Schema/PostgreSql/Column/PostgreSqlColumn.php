@@ -71,7 +71,7 @@ class PostgreSqlColumn extends Column
             $sqls[] = 'ALTER COLUMN ' . $this->name . ' SET NOT NULL';
         }
         if(isset($this->default)) {
-            $sqls[] = 'ALTER COLUMN ' . $this->name . ' SET DEFAULT "' . $this->default . '"';
+            $sqls[] = 'ALTER COLUMN ' . $this->name . " SET DEFAULT '" . $this->default . "'";
         }
         if(isset($this->rename)) {
             $sqls[] = 'RENAME COLUMN ' . $this->name . ' TO ' . $this->rename;
@@ -105,7 +105,7 @@ class PostgreSqlColumn extends Column
             $options[] = 'NOT NULL';
         }
         if(isset($this->default)) {
-            $options[] = 'DEFAULT "' . $this->default . '"';
+            $options[] = "DEFAULT '" . $this->default . "'";
         }
         return implode(' ', $options);
     }

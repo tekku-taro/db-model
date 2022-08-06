@@ -9,7 +9,7 @@ class DBCommandFactory
             case DbDriver::MY_SQL:
                 return 'USE ' . $config['dbname'] . ';';
             case DbDriver::POSTGRE_SQL:
-                return '\c ' . $config['dbname'] . ';';
+                return "set schema '" . $config['schema'] . "';";
         }  
     }
 
@@ -19,8 +19,8 @@ class DBCommandFactory
             case DbDriver::MY_SQL:
                 $encoding = $encoding ?? 'utf8mb4';
                 return 'CREATE DATABASE ' . $name . ' CHARACTER SET ' . $encoding;
-                case DbDriver::POSTGRE_SQL:
-                    $encoding = $encoding ?? 'UTF8';
+            case DbDriver::POSTGRE_SQL:
+                $encoding = $encoding ?? 'UTF8';
                 return 'CREATE DATABASE ' . $name . ' ENCODING ' . $encoding;
         }  
     }
