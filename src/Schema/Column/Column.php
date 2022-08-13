@@ -60,7 +60,7 @@ abstract class Column
         $this->name = $name;
         $this->tableName = $tableName;
         $this->typeName = $type;
-        $this->type($type);
+        $this->constructType($type);
     }
 
     public function mode(string $mode):self
@@ -75,6 +75,11 @@ abstract class Column
         $this->rename = $name;
         return $this;
     }    
+
+    protected function constructType(string $typeName)
+    {
+        $this->type($typeName);
+    }
 
     abstract public function type(string $typeName):self;
 

@@ -1,10 +1,13 @@
 <?php
 namespace Taro\DBModel\Schema\TableLoading;
 
+use Taro\DBModel\Schema\Column\Column;
 use Taro\DBModel\Schema\Column\ColumnType\ColumnTypeMap;
 use Taro\DBModel\Schema\Column\PrimaryKey;
 use Taro\DBModel\Schema\DbDriver;
 use Taro\DBModel\Schema\MySql\Column\ColumnType\MySqlColumnTypeMap;
+use Taro\DBModel\Schema\PostgreSql\Column\ColumnType\PostgreSqlColumnTypeMap;
+use Taro\DBModel\Schema\PostgreSql\Column\PostgreSqlColumn;
 use Taro\DBModel\Schema\SchemaFactory;
 use Taro\DBModel\Schema\Table;
 use Taro\DBModel\Utilities\DataManager\ObjectList;
@@ -67,9 +70,8 @@ class TableLoader
             if($columnInfo->unsigned) {
                 $column->unsigned();
             }
-            if($columnInfo->maxLength !== null && $this->checkColumnLength($column->typeName)) {
-                $column->length($columnInfo->maxLength);
-            }
+            $this->setColumnLength($column, $columnInfo);
+
             if($columnInfo->numericPrecision !== null) {
                 $column->precision($columnInfo->numericPrecision);
             }
@@ -78,11 +80,23 @@ class TableLoader
         }
     }
 
+    private function setColumnLength($column, TableColumnInfo $columnInfo)
+    {
+        if($columnInfo->maxLength !== null && $this->checkColumnLength($column->typeName)) {
+            $column->length($columnInfo->maxLength);
+        }        
+        if($column instanceof PostgreSqlColumn) {
+            $column->typeModified = false;
+        }
+    }
+
     private function checkColumnLength(string $typeName)
     {
         switch ($this->driver->type) {
             case DbDriver::MY_SQL:
                 return MySqlColumnTypeMap::checkHasLength($typeName);
+            case DbDriver::POSTGRE_SQL:
+                return PostgreSqlColumnTypeMap::checkHasLength($typeName);
         }          
     }
 

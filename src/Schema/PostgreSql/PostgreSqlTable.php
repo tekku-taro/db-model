@@ -40,6 +40,7 @@ class PostgreSqlTable extends Table implements IPostgreSqlTable
         $column = new PostgreSqlColumn($action, $name, $original->typeName, $this->name);
         if($original->length !== null) {
             $column->length($original->length);
+            $column->typeModified = false;
         }
         if($original->precision !== null) {
             $column->precision($original->precision);

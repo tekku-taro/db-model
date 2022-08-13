@@ -33,6 +33,6 @@ class PostgreSqlPrimaryKey extends PrimaryKey
 
     private function generateKeyName()
     {
-        return $this->table . '_pkey';
+        return $this->tableName . '_pkey';
     }
 }

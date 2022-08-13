@@ -10,7 +10,7 @@ use Taro\DBModel\Schema\Table;
 class PostgreSqlColumn extends Column
 {
 
-    private $typeModified = false;
+    public $typeModified = false;
 
     public function compile(): string
     {
@@ -110,6 +110,11 @@ class PostgreSqlColumn extends Column
         return implode(' ', $options);
     }
 
+    protected function constructType(string $typeName)
+    {
+        $this->type($typeName);
+        $this->typeModified = false;
+    }
 
     public function type(string $typeName):Column
     {
@@ -135,6 +140,11 @@ class PostgreSqlColumn extends Column
         } else {
             throw new NotFoundException('データ型:'.$this->type.'は最大文字数を設定できません。');
         }
+
+        if($this->action === Column::CHANGE_ACTION) {
+            $this->typeModified = true;
+        }
+
         return $this;
     }    
 

@@ -70,7 +70,9 @@ class PostgreSqlTableFetcher extends TableFetcher
         return "SELECT tc.TABLE_NAME, tc.CONSTRAINT_TYPE, tc.CONSTRAINT_NAME,
         k.column_name,
         ccu.table_name as REFERENCED_TABLE_NAME,
-        ccu.column_name as REFERENCED_COLUMN_NAME
+        ccu.column_name as REFERENCED_COLUMN_NAME,
+		con.confdeltype as ON_DELETE,
+		con.confupdtype as ON_UPDATE
         FROM information_schema.TABLE_CONSTRAINTS tc 
         LEFT JOIN information_schema.KEY_COLUMN_USAGE k ON tc.CONSTRAINT_NAME = k.CONSTRAINT_NAME 
         LEFT JOIN information_schema.referential_constraints rc
@@ -81,6 +83,8 @@ class PostgreSqlTableFetcher extends TableFetcher
         ON rc.unique_constraint_catalog = ccu.constraint_catalog
         AND rc.unique_constraint_schema = ccu.constraint_schema
         AND rc.unique_constraint_name = ccu.constraint_name		
+		LEFT JOIN pg_constraint con
+		on (con.conname = tc.constraint_name and con.contype = 'f')        
         WHERE 
         tc.CONSTRAINT_TYPE='FOREIGN KEY' 
         AND tc.TABLE_NAME = '".$this->name."'
@@ -173,12 +177,37 @@ class PostgreSqlTableFetcher extends TableFetcher
             $tableInfo->columnName = $row['column_name'];
             $tableInfo->referencedColumnName = $row['referenced_column_name'];
             $tableInfo->referencedTable = $row['referenced_table_name'];
+            $tableInfo->onUpdate = $this->getActionFromCode($row['on_update']);
+            $tableInfo->onDelete = $this->getActionFromCode($row['on_delete']);
 
             $data[] = $tableInfo;
         }
 
         $this->tableForeignKeys = $data;
     }   
+
+    private function getActionFromCode($code)
+    {
+        // アクションコード: a = no action, r = restrict, c = cascade, n = set null, d = set default 
+        switch ($code) {
+            case 'a':
+                return 'NO ACTION';
+                break;
+            case 'r':
+                return 'RESTRICT';
+                break;
+            case 'c':
+                return 'CASCADE';
+                break;
+            case 'n':
+                return 'SET NULL';
+                break;
+            case 'd':
+                return 'SET DEFAULT';
+                break;
+        }
+        return null;
+    }
 
     /**
      * @param array<string> $resultSet
