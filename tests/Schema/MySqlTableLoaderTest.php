@@ -65,7 +65,7 @@ class MySqlTableLoaderTest extends TestCase
         $sql = $table->generateSql(Table::CREATE_MODE);
         var_export($sql);
         
-        $expected = 'CREATE TABLE test_loader ( id INT(10) UNSIGNED NOT NULL,content TEXT,status VARCHAR(5) NOT NULL DEFAULT "good",user_id INT(10) UNSIGNED NOT NULL,FOREIGN KEY fk_test_loader_user_id_users_id ( user_id ) REFERENCES users ( id ),UNIQUE idx_test_loader_content_status ( content,status ),INDEX fk_test_loader_user_id_users_id ( user_id ),PRIMARY KEY  ( id ) );';
+        $expected = 'CREATE TABLE test_loader ( id INT(10) UNSIGNED NOT NULL,content TEXT,status VARCHAR(5) NOT NULL DEFAULT "good",user_id INT(10) UNSIGNED NOT NULL,FOREIGN KEY fk_test_loader_user_id_users_id ( user_id ) REFERENCES users ( id ) ON DELETE CASCADE ON UPDATE RESTRICT,UNIQUE idx_test_loader_content_status ( content,status ),INDEX fk_test_loader_user_id_users_id ( user_id ),PRIMARY KEY  ( id ) );';
 
         $this->assertEquals($expected, $sql);
     }

@@ -54,9 +54,11 @@ class MySqlTableFetcher extends TableFetcher
 
     public function getTableForiegnKeySql():string
     {
-        return 'SELECT i.TABLE_NAME, i.CONSTRAINT_TYPE, i.CONSTRAINT_NAME, k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME ,k.COLUMN_NAME
+        return 'SELECT i.TABLE_NAME, i.CONSTRAINT_TYPE, i.CONSTRAINT_NAME, k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME ,k.COLUMN_NAME, 
+        r.UPDATE_RULE as ON_UPDATE, r.DELETE_RULE as ON_DELETE
         FROM information_schema.TABLE_CONSTRAINTS i 
-        LEFT JOIN information_schema.KEY_COLUMN_USAGE k ON i.CONSTRAINT_NAME = k.CONSTRAINT_NAME 
+        LEFT JOIN information_schema.KEY_COLUMN_USAGE k ON i.CONSTRAINT_NAME = k.CONSTRAINT_NAME and k.CONSTRAINT_SCHEMA =  "'.$this->driver->dbName.'"
+        LEFT JOIN information_schema.REFERENTIAL_CONSTRAINTS r ON i.CONSTRAINT_NAME = r.CONSTRAINT_NAME  and r.CONSTRAINT_SCHEMA =  "'.$this->driver->dbName.'"
         WHERE i.CONSTRAINT_TYPE = "FOREIGN KEY" 
         AND i.TABLE_NAME = "'.$this->name.'"
         AND i.TABLE_SCHEMA = "'.$this->driver->dbName.'"
@@ -138,6 +140,8 @@ class MySqlTableFetcher extends TableFetcher
             $tableInfo->columnName = $row['COLUMN_NAME'];
             $tableInfo->referencedColumnName = $row['REFERENCED_COLUMN_NAME'];
             $tableInfo->referencedTable = $row['REFERENCED_TABLE_NAME'];
+            $tableInfo->onUpdate = $row['ON_UPDATE'];
+            $tableInfo->onDelete = $row['ON_DELETE'];
 
             $data[] = $tableInfo;
         }
