@@ -29,8 +29,8 @@ class DbConnection
                 $dbh = new PDO($config['dsn']);
             } else {
                 $dsn = $config['driver'] . ':host=' . $config['host'];
-                $dsn .= $config['dbname'] ? ';dbname=' . $config['dbname'] : '';
-                $dsn .= $config['port'] ? ';port=' . $config['port'] : '';
+                $dsn .= isset($config['dbname']) ? ';dbname=' . $config['dbname'] : '';
+                $dsn .= isset($config['port']) ? ';port=' . $config['port'] : '';
                 $dbh = new PDO($dsn, $config['user'], $config['password']);
             }
             $dbh->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
