@@ -25,12 +25,12 @@ class RelationList implements IteratorAggregate, Countable
         return $this->list;
     }
 
-    public function getIterator() 
+    public function getIterator():ArrayIterator
     {
       return new ArrayIterator($this->list);
     }
 
-    public function count()
+    public function count():int
     {
       return count($this->list); 
     }    
