@@ -16,7 +16,7 @@ class DB
     private static $globalDb;
 
     /** @var array<string,array<string,string>> 接続名 => DB接続情報配列 */
-    private static $configList;
+    private static $configList = [];
 
     public $connName;
 
@@ -29,6 +29,12 @@ class DB
         $this->config = $config;
         $this->dbh = $dbh;
         self::setConfig($connName, $config);
+    }
+
+    public static function clearConfig()
+    {
+        self::$configList = [];
+        self::$globalDb = null;
     }
 
     public static function getDriver(string $connName = null)

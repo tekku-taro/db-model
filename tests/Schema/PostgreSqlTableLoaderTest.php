@@ -65,7 +65,7 @@ class PostgreSqlTableLoaderTest extends TestCase
         $sql = $table->generateSql(Table::CREATE_MODE);
         var_export($sql);
         
-        $expected = "CREATE TABLE test_loader ( id INTEGER(32) NOT NULL,user_id INTEGER(32) NOT NULL,content TEXT,status CHARACTER VARYING(255) NOT NULL DEFAULT 'good',CONSTRAINT fk_test_loader_user_id_users_id FOREIGN KEY ( user_id ) REFERENCES users ( id ) ON DELETE CASCADE ON UPDATE NO ACTION,CONSTRAINT idx_test_loader_content_status UNIQUE ( content,status ),CONSTRAINT test_loader_pkey UNIQUE ( id ),PRIMARY KEY  ( id ) );";
+        $expected = "CREATE TABLE test_loader ( id INTEGER(32) NOT NULL,user_id INTEGER(32) NOT NULL,content TEXT,status CHARACTER VARYING(5) NOT NULL DEFAULT 'good',CONSTRAINT fk_test_loader_user_id_users_id FOREIGN KEY ( user_id ) REFERENCES users ( id ) ON DELETE CASCADE ON UPDATE NO ACTION,CONSTRAINT idx_test_loader_content_status UNIQUE ( content,status ),CONSTRAINT test_loader_pkey UNIQUE ( id ),PRIMARY KEY  ( id ) );";
 
         $this->assertEquals($expected, $sql);
     }

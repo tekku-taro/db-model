@@ -50,9 +50,10 @@ class PostgreSqlSchemaTest extends TestCase
             $table->addForeign('user_id')->references('users', 'id')->onDelete('CASCADE');
         });
 
-        $expected = "CREATE TABLE test2 ( id SERIAL NOT NULL,user_id INTEGER(32) NOT NULL,content TEXT,status CHARACTER VARYING(255) NOT NULL DEFAULT 'good',CONSTRAINT fk_test2_user_id_users_id FOREIGN KEY ( user_id ) REFERENCES users ( id ) ON DELETE CASCADE ON UPDATE NO ACTION,CONSTRAINT idx_test2_content_status UNIQUE ( content,status ),CONSTRAINT test2_pkey UNIQUE ( id ),PRIMARY KEY  ( id ) );";
+        $expected = "CREATE TABLE test2 ( id SERIAL NOT NULL,user_id INTEGER(32) NOT NULL,content TEXT,status CHARACTER VARYING(5) NOT NULL DEFAULT 'good',CONSTRAINT fk_test2_user_id_users_id FOREIGN KEY ( user_id ) REFERENCES users ( id ) ON DELETE CASCADE ON UPDATE NO ACTION,CONSTRAINT idx_test2_content_status UNIQUE ( content,status ),CONSTRAINT test2_pkey UNIQUE ( id ),PRIMARY KEY  ( id ) );";
 
-        $this->assertEquals(self::trimLineBreaks($expected), self::trimLineBreaks($table->original->generateSql(Table::CREATE_MODE)));    }
+        $this->assertEquals(self::trimLineBreaks($expected), self::trimLineBreaks($table->original->generateSql(Table::CREATE_MODE)));    
+    }
 
 
 
@@ -88,7 +89,7 @@ class PostgreSqlSchemaTest extends TestCase
 
         $alteredTable = Schema::alterTable($table);
           
-        $expected = "CREATE TABLE test2 ( id SERIAL NOT NULL,user_id INTEGER(32) NOT NULL,post_id INTEGER(32) NOT NULL,status CHARACTER VARYING(255) NOT NULL DEFAULT '0',CONSTRAINT fk_test2_post_id_posts_id FOREIGN KEY ( post_id ) REFERENCES posts ( id ) ON DELETE CASCADE ON UPDATE NO ACTION,CONSTRAINT test2_pkey UNIQUE ( id ),PRIMARY KEY  ( id ) );CREATE INDEX index1 ON test2 ( status );";
+        $expected = "CREATE TABLE test2 ( id SERIAL NOT NULL,user_id INTEGER(32) NOT NULL,post_id INTEGER(32) NOT NULL,status CHARACTER VARYING(5) NOT NULL DEFAULT '0',CONSTRAINT fk_test2_post_id_posts_id FOREIGN KEY ( post_id ) REFERENCES posts ( id ) ON DELETE CASCADE ON UPDATE NO ACTION,CONSTRAINT test2_pkey UNIQUE ( id ),PRIMARY KEY  ( id ) );CREATE INDEX index1 ON test2 ( status );";
 
         $this->assertEquals(self::trimLineBreaks($expected), self::trimLineBreaks($alteredTable->original->generateSql(Table::CREATE_MODE)));
     }

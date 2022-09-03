@@ -118,7 +118,7 @@ class SqliteTableTest extends TestCase
         $sql = $table->generateSql(Table::CREATE_MODE);
         var_export($sql);
         
-        $expected = 'CREATE TABLE test ( id INT NOT NULL,task VARCHAR(255) NOT NULL,PRIMARY KEY  ( id,task ) );';
+        $expected = 'CREATE TABLE test ( id INTEGER NOT NULL,task TEXT NOT NULL,PRIMARY KEY  ( id,task ) );';
 
         $this->assertEquals($expected, $sql);      
     }

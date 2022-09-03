@@ -1,6 +1,7 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
+use Taro\DBModel\DB\DB;
 use Taro\DBModel\DB\DbConnection;
 use Taro\DBModel\Schema\Database;
 use Taro\DBModel\Exceptions\DatabaseConnectionException;
@@ -13,6 +14,14 @@ class MySqlDatabaseTest extends TestCase
     private static $dbName2 = 'db_drop_test';
     private static $connName2 = 'databaseDropTest';
 
+
+    public static function setUpBeforeClass(): void
+    {
+        Database::dropIfExists(self::$dbName1, 'mysql');
+        Database::dropIfExists(self::$dbName2, 'mysql');
+        DB::clearConfig();
+    }
+        
     public function setUp():void
     {
     }
