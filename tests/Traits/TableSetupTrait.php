@@ -26,7 +26,7 @@ trait TableSetupTrait
     {
         $sql = 'SELECT count(*) FROM ' . $table . ' WHERE ';
         foreach ($data as $key => $value) {
-            $whereClause[] = $key . ' = "' . $value . '"';
+            $whereClause[] = $key . " = '" . $value . "'";
         }
 
         $sql .= implode(' AND ', $whereClause);

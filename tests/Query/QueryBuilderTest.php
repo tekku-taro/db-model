@@ -82,7 +82,7 @@ class QueryBuilderTest extends TestCase
         $this->assertEquals(5, $results);
 
         $query = QueryBuilder::query(Post::class);
-        $results = $query->groupBy('hidden')->count('hidden');
+        $results = $query->groupBy('hidden')->orderBy('hidden','ASC')->count('hidden');
 
         $expected = [
             ['hidden'=>'public','hidden_count'=>3],
@@ -91,7 +91,7 @@ class QueryBuilderTest extends TestCase
         $this->assertEquals($expected, $results->toArray());
 
         $query = QueryBuilder::query(Post::class);
-        $results = $query->groupBy('hidden', 'finished')->count('hidden');
+        $results = $query->groupBy('hidden', 'finished')->orderBy('hidden', 'ASC')->orderBy('finished', 'ASC')->count('hidden');
 
         $expected = [
             ['hidden'=>'public','finished'=>0,'hidden_count'=>1],
@@ -99,6 +99,7 @@ class QueryBuilderTest extends TestCase
             ['hidden'=>'secret','finished'=>0,'hidden_count'=>1],
             ['hidden'=>'secret','finished'=>1,'hidden_count'=>1],
         ];
+        var_export($results->toArray());
         $this->assertEquals($expected, $results->toArray());
     }
 
