@@ -1,13 +1,13 @@
 # DB Model
 
 PHPでリレーショナルデータベースを操作するための O/Rマッパーです。以前作成した **php-ormapper** の改良版です。
-このライブラリを使って、テーブルの作成・更新やレコードの作成・更新・取得などが可能です。
+このライブラリを使って、データベース／テーブルの作成・更新やレコードの作成・更新・取得などが可能です。
 
 ## 使い方
 
 ## モデルクラス
 
-*\Taro\DBModel\Models\Model* クラスを継承する
+*\Taro\DBModel\Models\Model* クラスを継承します
 
 ```php
 class Post extends Model
@@ -27,8 +27,8 @@ class Post extends Model
 
 ### リレーションの定義
 
-モデルクラス内に、リレーションメソッドを定義する
-以下の関係を定義できる。
+モデルクラス内に、リレーションメソッドを定義します。
+以下の関係を定義できます。
 
 * 1対1：hasOne(関係先のモデルクラス);
 * 1対多：hasMany(関係先のモデルクラス);
@@ -80,7 +80,7 @@ public function users()
 
 ### レコードの新規作成
 
-1. インスタンスを作成し、プロパティに値を代入して保存
+1. インスタンスを作成し、プロパティに値を代入して保存します
 
    ```php
    $post = new Post;
@@ -91,7 +91,7 @@ public function users()
 
    
 
-2. **fill**メソッドに、配列を渡して一括保存
+2. **fill**メソッドに、配列を渡して一括保存します
 
 ```php
 $post = new Post();
@@ -108,7 +108,7 @@ $post->fill($data)->insert();
 
 ### レコードの更新
 
-1. インスタンスのプロパティに更新データを代入
+1. インスタンスのプロパティに更新データを代入します。
 
    ```php
    $post = Post::query()->findById(1);
@@ -118,7 +118,7 @@ $post->fill($data)->insert();
 
    
 
-2. インスタンスの**fill**メソッドに、更新データを配列で渡して更新
+2. インスタンスの**fill**メソッドに、更新データを配列で渡して更新します。
 
    ```php
    $post = Post::query()->findById(1);
@@ -137,11 +137,11 @@ $post->delete();
 
 ## クエリビルダとクエリの実行
 
-モデルクラスの **query** を起点にクエリを作成していく。
+モデルクラスの **query** を起点にクエリを作成していきます。
 
 ### クエリビルダの作成
 
-必要なメソッドをメソッドチェーンで繋いでいく
+必要なメソッドをメソッドチェーンで繋いでいきます。
 
 ```php
 // where(カラム名, 値) 又は、 where(カラム名, oper, 値)
@@ -190,7 +190,7 @@ $query = Post::query();
 // where 句の作成
 // WHERE (views > 2) AND (hidden = "public") OR (title = "test3")
 $where = new Wh();       
-$where->addAnd('views', '>', '2');
+$where->add('views', '>', '2');
 $where->addAnd('hidden','public');
 $where->addOr('title', 'test3');
 // where句をクエリに追加
@@ -214,17 +214,18 @@ $where->addBlock(
     )
 );    
 $query2->addWhClause($where);
-
 ```
 
 ### モデルのリスト用クラス
 
-クエリビルダで **getAll** 実行後の結果は、**ActiveList** を実装したクラスのオブジェクトとして返されます。AcitveList は **ArrayList**, **ObjectList** のインターフェースです。配列として扱えるうえ、リストを操作する便利なメソッドを提供します。
+クエリビルダで **getAll**・**getArrayAll** 実行後の結果は、**ActiveList** を実装したクラスのオブジェクトとして返されます。AcitveList は **ArrayList**, **ObjectList** のインターフェースです。配列として扱えるうえ、リストを操作する便利なメソッドを提供します。
 
 - ArrayList: 配列データが対象
 - ObjectList: モデルオブジェクトのリストが対象
 
 ```php
+// getAllの戻り値は、モデルのリストオブジェクト（ObjectList）になります
+$posts = Post::query()->where('id', '>', '2')->getAll();
 // getArrayAllの戻り値は、配列のリストオブジェクト（ArrayList）になります
 $posts = Post::query()->where('id', '>', '2')->getArrayAll();
 ```
@@ -261,10 +262,13 @@ ifAll(callback): すべての要素で条件が true になるか
 
 groupBy(key): key の値でリストをグループ分けする
 
-getKeyMap(key): key の mapデータを作成する 
+toArray(): 格納したデータを配列として返す 
+    
+clone(): リストのクローン（シャローコピー）
     
 // 使用例
-$titles = $post->filter(function($item) {
+$posts = Post::query()->getAll();
+$titles = $posts->filter(function($item) {
     return $item->id >= 3;
 })->pluck('title');
 ```
@@ -276,26 +280,14 @@ $titles = $post->filter(function($item) {
 ```php
 // paginate(一度に取得するレコード数)
 $posts = Post::paginate(10);
-?>
-    
-<table>
-    <thead>
-        <tr>
-        <th>ID</th>
-        <th>title</th>
-        <th>body</th>
-        </tr>
-    </thead>
-    <tbody>
-    	<?php foreach ($posts as $post): ?>
-            <tr>
-            <td><?= $post->id ?></td>
-            <td><?= $post->title ?></td>
-            <td><?= $post->body ?></td>
-            </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
+?>    
+<?php foreach ($posts as $post): ?>
+    <ul>
+     <li><?= $post->id ?></li>
+     <li><?= $post->title ?></li>
+     <li><?= $post->body ?></li>
+   </ul>
+<?php endforeach; ?>
 <?php 
    // リンクを表示する
    $posts->dispLinks(); 
@@ -413,7 +405,47 @@ User::query()->eagerLoad(['tasks'])->getAll();
 $tasks = $user->tasks;
 ```
 
+#### 中間テーブルレコードの作成
 
+多対多のリレーションで、中間テーブルにレコードを作成します。
+
+1. 多対多のリレーションを定義
+
+   ```php
+   public function favoritePosts()
+   {
+       return $this->manyToMany(Post::class , 'favorites');
+   }
+   ```
+
+   
+
+2. **insertPivot** メソッドを使って、レコードを作成
+
+```php
+// insertPivot(関連テーブルのid, [独自のカラムに登録するデータを配列形式で])
+$user->favoritePosts()->insertPivot($postId, ['star'=>$star]);
+```
+
+#### レコードの更新
+
+**updatePivot** メソッドを使って、レコードを更新
+
+```php
+// updatePivot(関連テーブルのid, [独自のカラムに更新するデータを配列形式で])
+$user->favoritePosts()->updatePivot($postId, ['star'=>$star]);
+```
+
+#### レコードの削除
+
+**deletePivot** メソッドを使って、レコードを更新
+
+```php
+// deletePivot(関連テーブルのid)
+$user->favoritePosts()->deletePivot($postId);
+```
+
+## 
 
 ## DB接続設定ファイル
 
@@ -450,7 +482,7 @@ return [
 
 ### データベースへ接続
 
-モデルクラスを使う前に、RDBAdapterクラスのinitメソッドでDBへ接続する
+モデルクラスを使う前に、**DB::start**メソッドでDBへ接続します。
 
 ```php
 use Taro\DBModel\DB\DB;
@@ -500,7 +532,7 @@ Database::dropIfExists('データベース名');
 ```php
 use Taro\DBModel\Schema\Schema;
 
-Schema::createTable('test2', function(MySqlTable $table){
+Schema::createTable('test', function(MySqlTable $table){
     $table->addColumn('id','int')->unsigned()->primary();
     $table->addColumn('content','text')->nullable();
     $table->addColumn('status','string')->length(5)->default('good');
