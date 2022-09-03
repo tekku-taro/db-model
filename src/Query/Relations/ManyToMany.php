@@ -45,7 +45,7 @@ class ManyToMany extends RelationBuilder
         $this->setBindingParams($useBindParam);
     }
 
-    public function insertPivot($id, $data)
+    public function insertPivot($id, $data = [])
     {
         $query = $this->buildPivotQuery();
         return $query->insert([
@@ -55,7 +55,7 @@ class ManyToMany extends RelationBuilder
             );
     }
 
-    public function updatePivot($id, $data, $conditions = [])
+    public function updatePivot($id, $data = [], $conditions = [])
     {
         $query = $this->buildPivotQuery($id, $conditions);
 
