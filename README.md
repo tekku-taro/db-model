@@ -80,7 +80,7 @@ public function users()
 
 ### レコードの新規作成
 
-1. インスタンスを作成し、プロパティに値を代入して保存します
+方法1：インスタンスを作成し、プロパティに値を代入して保存します
 
    ```php
    $post = new Post;
@@ -91,7 +91,7 @@ public function users()
 
    
 
-2. **fill**メソッドに、配列を渡して一括保存します
+方法2：**fill**メソッドに、配列を渡して一括保存します
 
 ```php
 $post = new Post();
@@ -108,7 +108,7 @@ $post->fill($data)->insert();
 
 ### レコードの更新
 
-1. インスタンスのプロパティに更新データを代入します。
+方法1：インスタンスのプロパティに更新データを代入します。
 
    ```php
    $post = Post::query()->findById(1);
@@ -118,7 +118,7 @@ $post->fill($data)->insert();
 
    
 
-2. インスタンスの**fill**メソッドに、更新データを配列で渡して更新します。
+方法2：インスタンスの**fill**メソッドに、更新データを配列で渡して更新します。
 
    ```php
    $post = Post::query()->findById(1);
@@ -168,8 +168,10 @@ Post::query()->select('title','body')
 クエリビルダを作成した後、あるいは単独で実行できるメソッド。
 
 ```php
-// 複数のレコードを取得
+// 複数のモデルを取得
 $posts = Post::query()->where('id', '>', '2')->getAll();
+// 複数のレコードを配列で取得
+$posts = Post::query()->where('id', '>', '2')->getArrayAll();
 // 最初のレコードを取得
 $posts = Post::query()->where('id', '1')->getFirst();
 // モデルクラスから単独で実行できる
@@ -266,7 +268,7 @@ toArray(): 格納したデータを配列として返す
     
 clone(): リストのクローン（シャローコピー）
     
-// 使用例
+// 使用例　Post の id >= 3 のレコードの title を配列で取得
 $posts = Post::query()->getAll();
 $titles = $posts->filter(function($item) {
     return $item->id >= 3;
@@ -438,7 +440,7 @@ $user->favoritePosts()->updatePivot($postId, ['star'=>$star]);
 
 #### レコードの削除
 
-**deletePivot** メソッドを使って、レコードを更新
+**deletePivot** メソッドを使って、レコードを削除
 
 ```php
 // deletePivot(関連テーブルのid)
@@ -472,6 +474,7 @@ return [
             'schema'=>'public',
             'port'=>5433,
         ],
+        // 例では、./database 直下の databse.sqlite ファイルを読み込む
         'sqlite'=>[
             'driver'=>'sqlite',
             'dsn'=>'sqlite:' . FileHandler::SQLITE_PATH,
@@ -531,6 +534,9 @@ Database::dropIfExists('データベース名');
 
 ```php
 use Taro\DBModel\Schema\Schema;
+use Taro\DBModel\Schema\MySql\MySqlTable;
+// use Taro\DBModel\Schema\PostgreSql\PostgreSqlTable;
+// use Taro\DBModel\Schema\Sqlite\SqliteTable;
 
 Schema::createTable('test', function(MySqlTable $table){
     $table->addColumn('id','int')->unsigned()->primary();
@@ -546,7 +552,7 @@ Schema::createTable('test', function(MySqlTable $table){
 
 ### テーブルの更新
 
-テーブルを更新するには、まず対象となるテーブルを**Schema::getTable**で取得し、**Schema::alterTable**を実行します。
+テーブルを更新するには、まず対象となるテーブルを**Schema::getTable**で取得し、変更内容を記述後に**Schema::alterTable**を実行します。
 
 ```php
 // test テーブルを取得
@@ -565,7 +571,7 @@ Schema::alterTable($table);
 
 ## テーブルの削除
 
-テーブルを削除するには、**Schema::dropTableIfExists**を実行します。また、取得したテーブルを削除することもできます。
+テーブルを削除するには、**Schema::dropTableIfExists**を実行します。また、取得したテーブルを削除（**Schema::dropTable**）することもできます。
 
 ```php
 // 取得したテーブルを削除
