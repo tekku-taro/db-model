@@ -132,10 +132,19 @@ class PostgreSqlTable extends Table implements IPostgreSqlTable
     }
 
     /**
-     * @param array<string> $pkColumns
+     * @param array<string> $column
      * @return string
      */
-    protected function compilePk(array $columns):string
+    protected function compilePk(array $column):string
+    {
+        if(!$this->pkIsSetup) {
+            $this->setUpPk($column);
+        }
+        return $this->primaryKey->compile();
+    }   
+    
+
+    protected function setUpPk(array $columns):void
     {
         if(!empty($columns)) {
             if($this->primaryKey === null) {
@@ -144,9 +153,9 @@ class PostgreSqlTable extends Table implements IPostgreSqlTable
                 $this->primaryKey->addColumns($columns);
             }
         }
-        return $this->primaryKey->compile();
-    }   
-    
+        $this->pkIsSetup = true;
+    }
+
     protected function addAdditonalSqls(string $mode, string $sql):string
     {
         if($mode === self::ALTER_MODE) {

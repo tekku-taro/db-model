@@ -16,6 +16,7 @@ class MysqlSchemaTest extends TestCase
     public static function setUpBeforeClass():void
     {
         self::$db = DB::start('mysql', true);
+        Schema::dropTableIfExists('test2');
     }
 
     public static function tearDownAfterClass():void
@@ -112,7 +113,6 @@ class MysqlSchemaTest extends TestCase
         $this->assertEquals(self::trimLineBreaks($expected), self::trimLineBreaks($sql));
     }
 
-
     /**
      * @return void
      */
@@ -147,4 +147,60 @@ class MysqlSchemaTest extends TestCase
     {
         return preg_replace( "/\r|\n/", "", $string );
     }
+
+
+    /**
+     * @group failing
+     * @return void
+     */
+    public function testSaveTable()
+    {
+        Schema::saveTable('test2', function(MySqlTable $table){
+            $table->addColumn('id','int')->unsigned()->primary();
+            $table->addColumn('status','string')->length(25);
+            $table->addColumn('user_id','int')->unsigned();
+            
+            $table->addForeign('user_id')->references('users', 'id')->onDelete('CASCADE');
+        });
+
+        $sql = $this->showTable('test2');
+        var_export($sql);
+        $expected = 'CREATE TABLE `test2` (
+  `id` int(10) unsigned NOT NULL,
+  `status` varchar(25) NOT NULL,
+  `user_id` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_test2_user_id_users_id` (`user_id`),
+  CONSTRAINT `fk_test2_user_id_users_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4';
+
+        $this->assertEquals(self::trimLineBreaks($expected), self::trimLineBreaks($sql));
+
+        Schema::saveTable('test2', function(MySqlTable $table){
+            $table->addColumn('id','int')->unsigned()->primary();
+            $table->addColumn('content','text')->nullable();
+            $table->addColumn('status','string')->length(5)->default('good');
+            $table->addColumn('user_id','int')->unsigned();
+
+            $table->addUnique('content', 'status');
+            $table->addForeign('user_id')->references('users', 'id')->onDelete('CASCADE');
+        });
+
+        $sql = $this->showTable('test2');
+        var_export($sql);
+        $expected = 'CREATE TABLE `test2` (
+  `id` int(10) unsigned NOT NULL,
+  `status` varchar(5) NOT NULL DEFAULT \'good\',
+  `user_id` int(10) unsigned NOT NULL,
+  `content` text DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_test2_content_status` (`content`,`status`) USING HASH,
+  KEY `fk_test2_user_id_users_id` (`user_id`),
+  CONSTRAINT `fk_test2_user_id_users_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4';
+
+        $this->assertEquals(self::trimLineBreaks($expected), self::trimLineBreaks($sql));
+
+        Schema::dropTableIfExists('test2');
+    }    
 }

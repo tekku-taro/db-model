@@ -116,6 +116,37 @@ abstract class Column
         return $this;
     }
 
+    /**
+     * @return boolean
+     */
+    public function isChanged()
+    {
+        $changed = false;
+        if($this->nullable != $this->original->nullable) {
+            $changed = true;
+        }
+        if($this->default != $this->original->default) {
+            $changed = true;
+        }
+        if($this->length != $this->original->length) {
+            $changed = true;
+        }
+        if($this->typeName != $this->original->typeName) {
+            $changed = true;
+        }
+        if($this->unsigned != $this->original->unsigned) {
+            $changed = true;
+        }
+        if($this->after != $this->original->after) {
+            $changed = true;
+        }
+        if($this->before != $this->original->before) {
+            $changed = true;
+        }
+
+        return $changed;
+    }
+
     abstract public function compile(): string;
 
 

@@ -42,7 +42,15 @@ abstract class PrimaryKey
      */
     public function addColumns(array $columnNames)
     {
-        $this->columnNames = array_merge($this->columnNames, $columnNames);
+        $this->columnNames = array_merge($this->columnNames,array_diff($columnNames, $this->columnNames));
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isChanged()
+    {
+        return !empty(array_diff($this->columnNames, $this->original->columnNames));
     }
 
     abstract public function compile(): string;

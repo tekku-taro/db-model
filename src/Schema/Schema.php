@@ -47,6 +47,29 @@ class Schema
         return self::getTable($table->name);
     }
 
+    public static function saveTable(string $name, Callable $callback):Table   
+    {
+        $dbManipulator = self::getDbManipulator();
+        $driver = self::getDriver();
+        self::useDB($dbManipulator, $driver);
+
+        $fetcher = TableFetcher::getTableFetcher($name, $driver, $dbManipulator);
+        
+        if(!$fetcher) {
+            $table = SchemaFactory::newTable($name, $driver);
+            $callback($table);            
+            $sql = $table->generateSql(Table::CREATE_MODE);
+        } else {
+            $table = self::getTable($name);
+            $callback($table); 
+            $table->diffNewOriginalComponentsForSave();
+            $sql = $table->generateSql(Table::ALTER_MODE);
+        }    
+        $dbManipulator->exec($sql);        
+
+        return self::getTable($table->name);
+    }
+
     public static function dropTable(Table $table)    
     {
         $dbManipulator = self::getDbManipulator();

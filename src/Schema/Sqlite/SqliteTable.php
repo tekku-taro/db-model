@@ -175,10 +175,18 @@ class SqliteTable extends Table implements ISqliteTable
     }
 
     /**
-     * @param array<string> $pkColumns
+     * @param array<string> $column
      * @return string
      */
-    protected function compilePk(array $columns):string
+    protected function compilePk(array $column):string
+    {
+        if(!$this->pkIsSetup) {
+            $this->setUpPk($column);
+        }
+        return $this->primaryKey->compile();
+    }    
+
+    protected function setUpPk(array $columns):void
     {
         if(!empty($columns)) {
             if($this->primaryKey === null) {
@@ -187,8 +195,8 @@ class SqliteTable extends Table implements ISqliteTable
                 $this->primaryKey->addColumns($columns);
             }
         }
-        return $this->primaryKey->compile();
-    }    
+        $this->pkIsSetup = true;
+    }
 
     protected function getCreateTableAllSql(string $mode):string
     {

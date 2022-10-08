@@ -7,13 +7,13 @@ use Taro\DBModel\Schema\Column\Column;
 use Taro\DBModel\Schema\Column\ForeignKey;
 use Taro\DBModel\Schema\Column\Index;
 use Taro\DBModel\Schema\Column\PrimaryKey;
-use Taro\DBModel\Utilities\DataManager\ObjectList;
 
 abstract class Table
 {
     public const CREATE_MODE = 'CREATE';
     public const ALTER_MODE = 'ALTER';
     public const DROP_MODE = 'DROP'; 
+    public const SAVE_MODE = 'DROP'; 
 
     public $name;
 
@@ -37,6 +37,7 @@ abstract class Table
     /** @var Table */
     public $original;
 
+    protected $pkIsSetup = false;
 
     function __construct(string $name)
     {
@@ -160,6 +161,79 @@ abstract class Table
             }
         }         
         throw new NotFoundException(implode(',', $columns) . 'カラムからなるインデックスは存在しません。');
+    }
+
+    /**
+     * Table::save() の際の既存テーブルとの差分で情報を更新する
+     *
+     * @return void
+     */
+    public function diffNewOriginalComponentsForSave()
+    {
+        foreach ($this->original->columns as $originalColumn) {
+            if($this->checkIfExists(Column::class, $originalColumn->name)) {
+                $column = $this->getColumn($originalColumn->name);
+                $column->original = $originalColumn;
+                if($column->isChanged()) {
+                    $column->action = Column::CHANGE_ACTION;
+                } else {
+                    foreach ($this->columns as $idx => $targetColumn) {
+                        if($column->name === $targetColumn->name) {
+                            unset($this->columns[$idx]);
+                        }
+                    } 
+                }
+            } else {
+                $this->dropColumn($originalColumn->name);
+            }
+        }
+        
+        $this->diffNewOriginalForiegnIndex();
+
+        if(isset($this->original->primaryKey)) {
+            foreach ($this->columns as $column) {
+                if($column->isPk) {
+                    $pkColumns[] = $column->name;
+                }
+            } 
+            if(isset($pkColumns)) {
+                $this->setUpPk($pkColumns);   
+            }       
+            if(isset($this->primaryKey)) {
+                $this->primaryKey->original = $this->original->primaryKey;
+                if($this->primaryKey->isChanged()) {
+                    $this->dropPrimaryKey();
+                }
+            }      
+        }         
+    }
+
+    protected function diffNewOriginalForiegnIndex()
+    {
+        foreach ($this->original->foreignKeys as $originalForeignKey) {
+            if($this->checkIfExists(ForeignKey::class, $originalForeignKey->name)) {
+                foreach ($this->foreignKeys as $idx => $foreignKey) {
+                    if($originalForeignKey->name === $foreignKey->name) {
+                        unset($this->foreignKeys[$idx]);
+                    }
+                } 
+            } else {
+                $this->dropForeign($originalForeignKey->name);
+            }            
+            // mysql の場合は $this->dropIndex($foreignKey->name); が走る
+        }
+
+        foreach ($this->original->indexes as $originalIndex) {
+            if($this->checkIfExists(Index::class, $originalIndex->name)) {
+                foreach ($this->indexes as $idx => $index) {
+                    if($originalIndex->name === $index->name) {
+                        unset($this->indexes[$idx]);
+                    }
+                } 
+            } else {
+                $this->dropIndex($originalIndex->name);
+            }                
+        }
     }
 
     public function generateSql(string $mode):string
@@ -293,10 +367,12 @@ abstract class Table
     }
 
     /**
-     * @param array<string> $pkColumns
+     * @param array<string> $column
      * @return string
      */
-    abstract protected function compilePk(array $pkColumns):string;
+    abstract protected function compilePk(array $column):string;
+
+    abstract protected function setUpPk(array $pkColumns):void;
 
     protected function getAlterTableSql(string $mode):string
     {
@@ -349,7 +425,7 @@ abstract class Table
 
         if(isset($this->primaryKey) && $this->primaryKey->action === PrimaryKey::ADD_ACTION || !empty($pkColumns)) {
             $this->primaryKey->mode($mode);
-            $sql .= $baseSql . $this->primaryKey->compile($pkColumns) . ';';
+            $sql .= $baseSql . $this->compilePk($pkColumns) . ';';
         }
        
         return $sql;

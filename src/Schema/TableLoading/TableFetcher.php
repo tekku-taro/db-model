@@ -41,6 +41,28 @@ abstract class TableFetcher
 
     public static function fetchInfo(string $name, DbDriver $driver, DbManipulator $dbManipulator):self
     {
+        $fetcher = self::getTableFetcher($name, $driver, $dbManipulator);
+        
+        if(!$fetcher) {
+            throw new NotFoundException($name . 'テーブルが見つかりません！');
+        }
+        $fetcher->setTableColumns();
+        $fetcher->setTablePrimaryKey();
+        $fetcher->setTableForeignKeys();
+        $fetcher->setTableIndexes();
+        $fetcher->setEncoding();
+        $fetcher->setExtra();
+        return $fetcher;
+    }
+
+    /**
+     * @param string $name
+     * @param DbDriver $driver
+     * @param DbManipulator $dbManipulator
+     * @return false|MySqlTableFetcher|PostgreSqlTableFetcher|SqliteTableFetcher
+     */
+    public static function getTableFetcher(string $name, DbDriver $driver, DbManipulator $dbManipulator)
+    {
         switch ($driver->type) {
             case DbDriver::MY_SQL:
                 $fetcher = new MySqlTableFetcher($name, $driver, $dbManipulator);
@@ -59,14 +81,8 @@ abstract class TableFetcher
         }
         
         if(!$fetcher->tableExists($name, $tableExistsSql)) {
-            throw new NotFoundException($name . 'テーブルが見つかりません！');
+            return false;
         }
-        $fetcher->setTableColumns();
-        $fetcher->setTablePrimaryKey();
-        $fetcher->setTableForeignKeys();
-        $fetcher->setTableIndexes();
-        $fetcher->setEncoding();
-        $fetcher->setExtra();
         return $fetcher;
     }
 

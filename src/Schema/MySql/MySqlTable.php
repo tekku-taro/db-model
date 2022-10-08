@@ -50,7 +50,7 @@ class MySqlTable extends Table implements IMySqlTable
     }
 
     public function addForeign(string $column):MySqlForeignKey
-    {
+    {      
         $foreignKey = new MySqlForeignKey(ForeignKey::ADD_ACTION, $column, $this->name);
         $this->foreignKeys[] = $foreignKey;
         return $foreignKey;
@@ -133,10 +133,18 @@ class MySqlTable extends Table implements IMySqlTable
     }
 
     /**
-     * @param array<string> $pkColumns
+     * @param array<string> $column
      * @return string
      */
-    protected function compilePk(array $columns):string
+    protected function compilePk(array $column):string
+    {
+        if(!$this->pkIsSetup) {
+            $this->setUpPk($column);
+        }
+        return $this->primaryKey->compile();
+    }    
+
+    protected function setUpPk(array $columns):void
     {
         if(!empty($columns)) {
             if($this->primaryKey === null) {
@@ -145,7 +153,40 @@ class MySqlTable extends Table implements IMySqlTable
                 $this->primaryKey->addColumns($columns);
             }
         }
-        return $this->primaryKey->compile();
-    }    
+        $this->pkIsSetup = true;
+    }
 
+
+    protected function diffNewOriginalForiegnIndex()
+    {
+        $foreignKeyNames = [];
+        foreach ($this->original->foreignKeys as $originalForeignKey) {
+            $foreignKeyNames[] = $originalForeignKey->name;
+            if($this->checkIfExists(ForeignKey::class, $originalForeignKey->name)) {
+                foreach ($this->foreignKeys as $idx => $foreignKey) {
+                    if($originalForeignKey->name === $foreignKey->name) {
+                        unset($this->foreignKeys[$idx]);
+                    }
+                } 
+            } else {
+                $this->dropForeign($originalForeignKey->name);
+            }            
+            // mysql の場合は $this->dropIndex($foreignKey->name); が走る
+        }
+
+        foreach ($this->original->indexes as $originalIndex) {
+            if($this->checkIfExists(Index::class, $originalIndex->name)) {
+                foreach ($this->indexes as $idx => $index) {
+                    if($originalIndex->name === $index->name) {
+                        unset($this->indexes[$idx]);
+                    }
+                } 
+            } else {
+                if(!in_array($originalIndex->name, $foreignKeyNames)) {
+                    $this->dropIndex($originalIndex->name);
+                }
+            }                
+        }        
+    }
+        
 }
