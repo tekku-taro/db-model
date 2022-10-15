@@ -125,10 +125,10 @@ abstract class Column
         if($this->nullable != $this->original->nullable) {
             $changed = true;
         }
-        if($this->default != $this->original->default) {
+        if(strcmp($this->default, $this->original->default) !== 0) {
             $changed = true;
         }
-        if($this->length != $this->original->length) {
+        if($this->length !== $this->original->length) {
             $changed = true;
         }
         if($this->typeName != $this->original->typeName) {

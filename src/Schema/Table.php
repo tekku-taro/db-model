@@ -170,26 +170,6 @@ abstract class Table
      */
     public function diffNewOriginalComponentsForSave()
     {
-        foreach ($this->original->columns as $originalColumn) {
-            if($this->checkIfExists(Column::class, $originalColumn->name, true)) {
-                $column = $this->getColumn($originalColumn->name);
-                $column->original = $originalColumn;
-                if($column->isChanged()) {
-                    $column->action = Column::CHANGE_ACTION;
-                } else {
-                    foreach ($this->columns as $idx => $targetColumn) {
-                        if($column->name === $targetColumn->name) {
-                            unset($this->columns[$idx]);
-                        }
-                    } 
-                }
-            } else {
-                $this->dropColumn($originalColumn->name);
-            }
-        }
-        
-        $this->diffNewOriginalForiegnIndex();
-
         if(isset($this->original->primaryKey)) {
             foreach ($this->columns as $column) {
                 if($column->isPk) {
@@ -205,13 +185,34 @@ abstract class Table
                     $this->dropPrimaryKey();
                 }
             }      
-        }         
+        }
+        
+        foreach ($this->original->columns as $originalColumn) {
+            if($this->checkIfExists(Column::class, $originalColumn->name, true)) {
+                $column = $this->getColumn($originalColumn->name);
+                $column->original = $originalColumn;
+                if($column->isChanged()) {
+                    $column->action = Column::CHANGE_ACTION;
+                } else {
+                    foreach ($this->columns as $idx => $targetColumn) {
+                        if($column->name === $targetColumn->name) {
+                            unset($this->columns[$idx]);
+                            break;
+                        }
+                    } 
+                }
+            } else {
+                $this->dropColumn($originalColumn->name);
+            }
+        }
+        
+        $this->diffNewOriginalForiegnIndex();         
     }
 
     protected function diffNewOriginalForiegnIndex()
     {
         foreach ($this->original->foreignKeys as $originalForeignKey) {
-            if($this->checkIfExists(ForeignKey::class, $originalForeignKey->name)) {
+            if($this->checkIfExists(ForeignKey::class, $originalForeignKey->name, true)) {
                 foreach ($this->foreignKeys as $idx => $foreignKey) {
                     if($originalForeignKey->name === $foreignKey->name) {
                         unset($this->foreignKeys[$idx]);
@@ -224,7 +225,7 @@ abstract class Table
         }
 
         foreach ($this->original->indexes as $originalIndex) {
-            if($this->checkIfExists(Index::class, $originalIndex->name)) {
+            if($this->checkIfExists(Index::class, $originalIndex->name, true)) {
                 foreach ($this->indexes as $idx => $index) {
                     if($originalIndex->name === $index->name) {
                         unset($this->indexes[$idx]);
