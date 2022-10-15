@@ -16,6 +16,7 @@ class SqliteSchemaTest extends TestCase
     public static function setUpBeforeClass():void
     {
         self::$db = DB::start('sqlite', true);
+        Schema::dropTableIfExists('test2');
     }
 
     public static function tearDownAfterClass():void
@@ -100,12 +101,8 @@ class SqliteSchemaTest extends TestCase
         /** @var SqliteTable $table */
         $table = Schema::getTable('test2');
         
-        $table->addColumn('post_id','int')->nullable(); 
-        
-        /** @var SqliteTable $table */
-        $table = Schema::alterTable($table);
-
         $table->changeColumn('status')->default(0);
+        $table->addColumn('post_id','int'); 
         $table->addForeign('post_id')->references('posts','id')->onDelete('cascade')->name('FK1');
         $table->dropForeign('fk_test2_user_id_users_id');
         $table->dropIndexByColumns('content','status');
@@ -161,4 +158,54 @@ class SqliteSchemaTest extends TestCase
     {
         return preg_replace( "/\r|\n/", "", $string );
     }
+
+    /**
+     * @group failing
+     * @return void
+     */
+    public function testSaveTable()
+    {
+        Schema::saveTable('test2', function(SqliteTable $table){
+            $table->addColumn('id','int')->primary();
+            $table->addColumn('content','text')->nullable();
+            $table->addColumn('status','string')->default('good');
+            $table->addColumn('user_id','int');
+            $table->addColumn('post_id','int');
+
+            $table->addUnique('content', 'status');
+            $table->addForeign('user_id')->references('users', 'id')->onDelete('CASCADE');
+        });
+
+        $sql = $this->showTable('test2');
+        var_export($sql);
+        $expected = 'CREATE TABLE test2 ( id INTEGER NOT NULL,content TEXT,status TEXT NOT NULL DEFAULT "good",user_id INTEGER NOT NULL,post_id INTEGER NOT NULL,PRIMARY KEY  ( id ),CONSTRAINT fk_test2_user_id_users_id FOREIGN KEY ( user_id ) REFERENCES users ( id ) ON DELETE CASCADE )';
+
+        $this->assertEquals(self::trimLineBreaks($expected), self::trimLineBreaks($sql));
+
+        $sql = $this->showIndex('test2');
+        var_export($sql);
+        $expected = "CREATE UNIQUE INDEX idx_test2_content_status ON test2 ( content,status )";
+        $this->assertEquals(self::trimLineBreaks($expected), self::trimLineBreaks($sql));
+
+        Schema::saveTable('test2', function(SqliteTable $table){ 
+            $table->addColumn('id','int')->primary();
+            $table->addColumn('status','string')->default(0);
+            $table->addColumn('user_id','int');   
+            $table->addColumn('post_id','int');
+            
+            $table->addIndex('status')->name('INDEX1');
+            $table->addForeign('post_id')->references('posts','id')->onDelete('cascade')->name('FK1');
+        });
+
+        $sql = $this->showTable('test2');
+        var_export($sql);
+        $expected = 'CREATE TABLE test2 ( id INTEGER NOT NULL,status TEXT NOT NULL DEFAULT "0",user_id INTEGER NOT NULL,post_id INTEGER NOT NULL,PRIMARY KEY  ( id ),CONSTRAINT fk_test2_user_id_users_id FOREIGN KEY ( user_id ) REFERENCES users ( id ) ON DELETE CASCADE,CONSTRAINT FK1 FOREIGN KEY ( post_id ) REFERENCES posts ( id ) ON DELETE cascade )';
+        $this->assertEquals(self::trimLineBreaks($expected), self::trimLineBreaks($sql));
+        $sql = $this->showIndex('test2');
+        var_export($sql);
+        $expected = "CREATE INDEX INDEX1 ON test2 ( status )";
+        $this->assertEquals(self::trimLineBreaks($expected), self::trimLineBreaks($sql));
+
+        Schema::dropTableIfExists('test2');
+    }        
 }

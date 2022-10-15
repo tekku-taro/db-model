@@ -162,7 +162,7 @@ class MySqlTable extends Table implements IMySqlTable
         $foreignKeyNames = [];
         foreach ($this->original->foreignKeys as $originalForeignKey) {
             $foreignKeyNames[] = $originalForeignKey->name;
-            if($this->checkIfExists(ForeignKey::class, $originalForeignKey->name)) {
+            if($this->checkIfExists(ForeignKey::class, $originalForeignKey->name, true)) {
                 foreach ($this->foreignKeys as $idx => $foreignKey) {
                     if($originalForeignKey->name === $foreignKey->name) {
                         unset($this->foreignKeys[$idx]);

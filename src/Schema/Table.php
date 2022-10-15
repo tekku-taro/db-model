@@ -60,24 +60,24 @@ abstract class Table
 
     abstract public function addUnique(...$columns);
 
-    public function checkIfExists(string $componentClass, string $name):bool
+    public function checkIfExists(string $componentClass, string $name, bool $excludeOriginal = false):bool
     {   
         switch ($componentClass) {
             case Column::class:
                 $list = $this->columns;                
-                if(isset($this->original)) {
+                if(!$excludeOriginal && isset($this->original)) {
                     $list = array_merge($list, $this->original->columns);
                 }
                 break;
             case ForeignKey::class:
                 $list = $this->foreignKeys;                
-                if(isset($this->original)) {
+                if(!$excludeOriginal && isset($this->original)) {
                     $list = array_merge($list, $this->original->foreignKeys);
                 }
                 break;
             case Index::class:
                 $list = $this->indexes; 
-                if(isset($this->original)) {
+                if(!$excludeOriginal && isset($this->original)) {
                     $list = array_merge($list, $this->original->indexes);
                 }                
                 break;
@@ -171,7 +171,7 @@ abstract class Table
     public function diffNewOriginalComponentsForSave()
     {
         foreach ($this->original->columns as $originalColumn) {
-            if($this->checkIfExists(Column::class, $originalColumn->name)) {
+            if($this->checkIfExists(Column::class, $originalColumn->name, true)) {
                 $column = $this->getColumn($originalColumn->name);
                 $column->original = $originalColumn;
                 if($column->isChanged()) {
@@ -429,23 +429,7 @@ abstract class Table
         }
        
         return $sql;
-    }
-
-
-    public function getRemainingColumnNames()
-    {
-        $addingColumns = [];
-        $droppingColumns = [];
-        foreach ($this->columns as $column) {
-            if($column->action === Column::ADD_ACTION) {
-                $addingColumns[] = $column->name;
-            }
-            if($column->action === Column::DROP_ACTION) {
-                $droppingColumns[] = $column->name;
-            }
-        }        
-        return array_diff($addingColumns, $droppingColumns);
-    }    
+    }   
     
     protected function getPkColumns()
     {
