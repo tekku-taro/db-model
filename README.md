@@ -451,7 +451,7 @@ $user->favoritePosts()->deletePivot($postId);
 
 ## DB接続設定ファイル
 
-*src/Config/Database.php* ファイル内にデータベース接続情報を登録します。 **.env** ファイルに記載した情報を使う場合は、 **env()** メソッドを使います。
+*プロジェクトルート/config/database.php* ファイル内にデータベース接続情報を登録します。 **.env** ファイルに記載した情報を使う場合は、 **env()** メソッドを使います。
 
 ```php
 // connections 以下に、接続名をキーとして、接続情報を指定する
@@ -474,10 +474,10 @@ return [
             'schema'=>'public',
             'port'=>5433,
         ],
-        // 例では、./database 直下の databse.sqlite ファイルを読み込む
+        // 例では、プロジェクトルート/database 直下の database.sqlite ファイルを読み込む
         'sqlite'=>[
             'driver'=>'sqlite',
-            'dsn'=>'sqlite:' . FileHandler::SQLITE_PATH,
+            'dsn'=>'sqlite:' . FileHandler::sqlitePath(),
         ],
     ]
 ];
@@ -489,7 +489,7 @@ return [
 
 ```php
 use Taro\DBModel\DB\DB;
-// 引数として利用する接続名を渡す（省略すると、Database.phpに記載したdefault値が使われる）
+// 引数として利用する接続名を渡す（省略すると、database.phpに記載したdefault値が使われる）
 $db = DB::start('mysql', true);
 
 // 接続を閉じる
@@ -580,6 +580,25 @@ Schema::dropTable($table);
 
 // test テーブルを削除
 Schema::dropTableIfExists('test');
+```
+
+## テーブルの一元管理
+
+**Schema::saveTable**を使うことで、上記のテーブルの作成・更新・削除を自動で実行することもできます。コールバック内のコードを変更して実行することで、既存の同名テーブルとの差分クエリを作成してテーブルを更新します。
+
+```php
+use Taro\DBModel\Schema\Schema;
+use Taro\DBModel\Schema\MySql\MySqlTable;
+// use Taro\DBModel\Schema\PostgreSql\PostgreSqlTable;
+// use Taro\DBModel\Schema\Sqlite\SqliteTable;
+
+Schema::saveTable('test', function(MySqlTable $table){
+    $table->addColumn('id','int')->primary();
+    $table->addColumn('content','text')->nullable();
+    $table->addColumn('status','string')->length(5)->default('good');
+
+    $table->addUnique('content', 'status');
+});
 ```
 
 
