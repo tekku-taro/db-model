@@ -22,7 +22,9 @@ class QueryBuilder extends BaseBuilder
     public function getFirst():Model    
     {
         $result = $this->executeAndFetch();
-
+        if(empty($result)) {
+            return null;
+        }
         return $this->hydrate($result, $this->modelName);
     }
 
